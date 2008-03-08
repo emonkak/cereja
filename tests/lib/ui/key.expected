@@ -1,0 +1,12 @@
+
+#### Test Suite with 3 Tests in 3 Test Cases loaded.
+
+#### Running 'string_to_vk and vk_name_table_add' (1 Tests)...
+
+#### Running 'string_to_modifier and modifier_name_table_add' (1 Tests)...
+
+#### Running 'string_to_vk_and_modifiers' (1 Tests)...
+
+#### Test Suite finished.
+
+17 Assertions checked. All Tests passed!

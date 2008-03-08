@@ -1,0 +1,26 @@
+; $Id$
+
+(:host s8.xrea.com
+ :user nicht
+;:password omit-to-input-at-runtime
+ :destination /public_html/2006/12/cereja
+ :default (
+   (/ 705 binary)
+   (.htaccess 604 text)
+   (.html 604 text)
+   (.css 604 text)
+   (.tar.bz2 604 binary)
+ )
+ :sources (
+   index.html
+   manual.html
+   (../doc/style.css :remote-name style.css)
+
+   (dot.htaccess :remote-name archives/.htaccess)
+   (../cereja-@@VERSION@@.tar.bz2
+    :remote-name archives/cereja-@@VERSION@@.tar.bz2)
+ )
+)
+
+; vim: filetype=lisp
+; __END__

@@ -1,0 +1,6 @@
+# $Id$
+
+Options +Indexes
+
+# vim: filetype=apache
+# __END__

@@ -1,0 +1,289 @@
+
+To use the unit testing framework 'lunit' copy the file 'lunit.lua' to your
+lua search path or include it to your package.
+
+
+To write a testcase, open the framework using require. Make sure that
+require() finds the 'lunit.lua' file.
+
+	require "lunit"
+
+
+The actual tests are assertions in test functions. You can wrap a single
+function to form a independet testcase. Example:
+
+	lunit.wrap(function()
+	  -- Test code goes here
+	end)
+
+
+Alternativly you can also supply a name for the wrapped function. Example:
+
+	lunit.wrap("I'm a very simply test", function()
+	  -- Test code goes here
+	end
+
+
+If you have more related tests you can group them into testcase objects. To
+do this, create a new testcase object using lunit.TestCase().
+Its argument is the name for the new testcase. Example:
+
+	local testcase = lunit.TestCase("An example testcase")
+
+
+The tests itself on a testcase objects are functions which names must begin
+or end with 'test'. The case of these names doesn't matters. Example:
+
+	function testcase.FirstTest()
+	  -- Test code goes here
+	end
+
+	function testcase.test_something()
+	    -- Test code goes here
+	end
+
+
+Inside the test functions, either wrapped functions or functions on a
+testcase object, you use assert calls to test your code or package.
+Lunit defines 26 handy assert functions:
+
+	lunit.assert( assertion, [msg] )
+
+		Fails, if 'assertion' is false or nil.
+
+	lunit.assert_fail( [msg] )
+
+		Always fails.
+
+	lunit.assert_true( actual, [msg] )
+
+		Fails, if 'actual' isn't true.
+
+	lunit.assert_false( actual, [msg] )
+
+		Fails, if 'actual' isn't false. (Even fails if 'actual' is
+		a nil value!)
+
+	lunit.assert_equal( expected, actual, [msg] )
+
+		Fails, if 'actual' is different from 'expected'. Make sure
+		that you don't mix 'expected' and 'actual' because they are
+		used to build a nice error message.
+
+	lunit.assert_not_equal( unexpected, actual, [msg] )
+
+		Fails, if 'actual' and 'unexpected' are equal.
+
+	lunit.assert_match( pattern, actual, [msg] )
+
+		Fails, if the string 'actual' doesn't match 'pattern'.
+
+	lunit.assert_not_match( pattern, actual, [msg] )
+
+		Fails, if the string 'actual' match 'pattern'.
+
+	lunit.assert_nil( actual, [msg] )
+
+		Fails, if 'actual' isn't a nil value.
+
+	lunit.assert_not_nil( actual, [msg] )
+
+		Fails, if 'actual' is a nil value.
+
+	lunit.assert_boolean( actual, [msg] )
+
+		Fails, if 'actual' isn't true or false.
+
+	lunit.assert_not_boolean( actual, [msg] )
+
+		Fails, if 'actual' is true or false.
+
+	lunit.assert_number( actual, [msg] )
+
+		Fails, if 'actual' isn't a number.
+
+	lunit.assert_not_number( actual, [msg] )
+
+		Fails, if 'actual' is a number.
+
+	lunit.assert_string( actual, [msg] )
+
+		Fails, if 'actual' isn't a string.
+
+	lunit.assert_not_string( actual, [msg] )
+
+		Fails, if 'actual' is a string.
+
+	lunit.assert_table( actual, [msg] )
+
+		Fails, if 'actual' isn't a table.
+
+	lunit.assert_not_table( actual, [msg] )
+
+		Fails, if 'actual' is a table.
+
+	lunit.assert_function( actual, [msg] )
+
+		Fails, if 'actual' isn't a function.
+
+	lunit.assert_not_function( actual, [msg] )
+
+		Fails, if 'actual' is a function.
+
+	lunit.assert_thread( actual, [msg] )
+
+		Fails, if 'actual' isn't a thread (created by
+		coroutine.create or coroutine.wrap).
+
+	lunit.assert_not_thread( actual, [msg] )
+
+		Fails, if 'actual' is a thread.
+
+	lunit.assert_userdata( actual, [msg] )
+
+		Fails, if 'actual' isn't userdata.
+
+	lunit.assert_not_userdata( actual, [msg] )
+
+		Fails, if 'actual' is userdata.
+
+	lunit.assert_error( [msg], func )
+
+		Fails, if 'func' doesn't raises an error (using error()).
+
+	lunit.assert_pass( [msg], func )
+
+		Fails, if 'func' raises an error.
+
+
+All assert functions take an optional message as the last argument. Only 
+assert_pass() and assert_error() require the optional message as the first
+argument. The last argument of these two are functions.
+
+There are also some handy functions to test the type of a value:
+
+	lunit.is_nil( actual )
+	lunit.is_boolean( actual )
+	lunit.is_number( actual )
+	lunit.is_string( actual )
+	lunit.is_table( actual )
+	lunit.is_function( actual )
+	lunit.is_thread( actual )
+	lunit.is_userdata( actual )
+
+These all return true if 'actual' is of correct type, otherwise false. 
+
+You use the assert functions and the is_type functions in your tests to check
+your code or package. Example:
+
+	function testcase.FirstTest()
+	  local result = compute_some_value()
+	  lunit.assert_string( result )
+	  lunit.assert_equal("foobar", result)
+	end
+
+	function testcase.test_something()
+	  local result = flip_coin()	-- flip_coin returns at random 0 or 1
+	  lunit.assert_number(result)
+	  if result == 0 then
+	    -- ok
+	  elseif result == 1 then
+	    -- ok
+	  else
+	    lunit.assert_fail("flip_coin: invalid number: "..tostring(result))
+	  end
+	end
+
+
+You can define the functions setup() and teardown() on testcase objects
+if you have to allocate some resources or obtain some handles for your
+tests. The setup() function is called before every test and teardown() is
+called after every test. All tests, setup() and teardown() are called with
+the test case object as the first argument. So you can add instance
+variables to the object. Example:
+
+	local tc = lunit.TestCase("Resource Test")
+	
+	function tc:setup()
+	  self.content = { "row 1", "row 2", "row 3" }
+	  self.handle = database_open("test.db")
+	  database_create_table(self.handle, ...)
+	  database_fill_table(self.handle, self.content, ...)
+	end
+	
+	function tc:teardown()
+	  database_drop_table(self.handle, ...)
+	  database_close(self.handle)
+	  self.handle = nil
+	  delete_file("test.db")
+	end
+	
+	function tc:test_select()
+	  local content = database_select(self.handle, ...)
+	  lunit.assert_table( content )
+	  lunit.assert_equal( self.content, content )
+	end
+	
+	function tc:test_insert()
+	  database_insert(self.handle, "row 4", ...)
+	  local content = database_select(self.handle, ...)
+	  lunit.assert_table( content )
+	  lunit.assert_equal( { "row 1", "row 2", "row 3", "row 4" }, content )
+	end
+	
+	function tc:test_delete()
+	  database_delete(self.handle, "row 2", ...)
+	  local content = database_select(self.handle, ...)
+	  lunit.assert_table( content )
+	  lunit.assert_equal( { "row 1", "row 3" }, content )
+	end
+
+
+If you don't would like to type 'lunit.' before every assert or type test
+function, you could import the functions using lunit.import(). Example:
+
+	lunit.import "assert_equal"
+	lunit.import "is_function"
+
+Additionally lunit.import() understands some group names:
+
+	lunit.import "asserts"	-- Imports all assert functions
+	lunit.import "checks"	-- Imports all is_type functions
+	lunit.import "all"	-- TestCase, asserts and is_type functions
+
+You could not import lunit.run() nor lunit.import(). Only the assert
+functions, the type check functions and the testcase create function
+TestCase().
+
+
+Calling lunit.import() installs the function to your current global
+environment. If you don't would like to polute the global environment,
+because this will conflict with a package under test, you could install
+a private environment by calling lunit.setprivfenv(). Example:
+
+	lunit.setprivfenv()
+
+The call to lunit.setprivfenv() creates a new environment using setfenv()
+and installs a meta table on the new environment to make sure that all
+globals are accessibly.
+
+The easiest way to use the lunit framework in your tests without global
+namespace pollution is this sequence in your code:
+
+	lunit.setprivfenv()
+	lunit.import "all"
+
+After these two calls you could use the lunit framework functions without
+typing the 'lunit.' prefix and without worring about global environment
+pollution.
+
+
+To run all your testcases, simply call lunit.run() when you created all 
+testcases and defined all tests. Example:
+
+	lunit.run()
+
+Testcases will be run in the order they are created calling lunit.wrap()
+or lunit.TestCase(). Tests are run in the order they are created on the
+testcase object.
+

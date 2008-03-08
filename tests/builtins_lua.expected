@@ -1,0 +1,46 @@
+
+#### Test Suite with 8 Tests in 8 Test Cases loaded.
+
+#### Running 'os.pathexistsp' (1 Tests)...
+
+#### Running 'package.findfile' (1 Tests)...
+
+#### Running 'bitwise operations' (1 Tests)...
+
+#### Running 'range' (1 Tests)...
+
+#### Running 'mapx' (1 Tests)...
+
+#### Running 'sortx' (1 Tests)...
+
+#### Running 'exported names' (1 Tests)...
+NOTICE_DEBUG	number
+NOTICE_ERROR	number
+NOTICE_INFO	number
+NOTICE_WARNING	number
+_load_extension	function
+_loaded_extensions	table
+add_notice_handler	function
+call_notice_handlers	function
+exit	function
+load_extension	function
+notice	function
+notice_debug	function
+notice_debugf	function
+notice_error	function
+notice_errorf	function
+notice_info	function
+notice_infof	function
+notice_warning	function
+notice_warningf	function
+noticef	function
+on_other_shellp	boolean
+remove_notice_handler	function
+system_directory	string
+user_directory	string
+
+#### Running 'cereja.load_extension' (1 Tests)...
+
+#### Test Suite finished.
+
+54 Assertions checked. All Tests passed!

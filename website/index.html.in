@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
+<head>
+  <title>cereja, alternative shell</title>
+  <meta name="robots" content="NOINDEX,NOFOLLOW,NOARCHIVE,NOSNIPPET"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body id="cereja">
+<div id="header">
+  <h1>cereja, alternative shell</h1>
+@@AD@@
+</div>
+<div id="body">
+
+
+
+
+<ul>
+  <li>現在のバージョン: @@VERSION@@ (<a href="manual#_history">変更点</a>)</li>
+  <li><a href="manual">オンラインマニュアル</a></li>
+  <li><a href="./archives/">ダウンロード</a></li>
+</ul>
+
+
+
+
+</div>
+<div id="footer">
+  <address>Copyright &#169; 2006-2008 kana &lt;<a href="http://nicht.s8.xrea.com/">http://nicht.s8.xrea.com/</a>&gt;</address>
+</div>
+</body>
+</html>

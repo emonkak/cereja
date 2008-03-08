@@ -1,0 +1,1110 @@
+<?xml version="1.0" encoding="UTF-8"?>  <!--{{{1-->
+<c:doc xmlns:c="http://nicht.s8.xrea.com/2006/11/cereja"
+       xmlns="http://www.w3.org/1999/xhtml">
+<c:head>
+  <c:title>cereja <c:var name="VERSION"/></c:title>
+
+  <c:ctime>2006-11-23T14:19:26+09:00</c:ctime>
+  <c:mtime><c:var name="MTIME"/></c:mtime>
+</c:head>
+<c:body>
+<c:contents/>
+
+
+
+
+
+
+
+
+<c:section id="abstract" class="stub">  <!--{{{1-->
+  <c:title>概要</c:title>
+
+  <ul>
+    <li>Windows用代替シェル。</li>
+    <li>スクリプト言語 -- Luaの処理系を内蔵。カスタマイズはスクリプトを書くことで行う。</li>
+    <li>拡張性 -- モジュールによる機能の分離/追加。基本的にLuaで書く。必要ならばC等でも書ける。</li>
+    <li>柔軟性 -- モジュールは互いに直交しており、提供される各機能は自由に組み合わせることができる。</li>
+    <li>単純性 -- スクリプトの実行以外は基本的に何もしない。ほぼ全ての機能はモジュールとして分離。例えそれがシェルとして必須の機能であっても (例: <a href="/module-shell/tray">トレイでさえ分離</a>されている)。</li>
+    <li>アイキャンディは一切なし。目に見えるUIはほとんどない。キーボードで何でも操作してしまう人向け。</li>
+  </ul>
+
+  <c:section id="spec">  <!--{{{2-->
+    <c:title>動作環境</c:title>
+
+    <p>Windows XPで動作 (Windows 2000でも動作するかも知れませんが未確認です)。</p>
+    <p>開発及び動作確認はWindows XP Professional SP2で行っています。</p>
+  </c:section>
+
+  <c:section id="license">  <!--{{{2-->
+    <c:title>ライセンス</c:title>
+
+    <p>cerejaはMIT Licenseで提供されます。cerejaが利用している各ライブラリについてはそれぞれのライセンスに従います。</p>
+    <dl>
+      <dt>cereja</dt>
+      <dd>
+        <p>Copyright <c:e name="copy"/> 2006-2008 kana &lt;<a href="http://nicht.s8.xrea.com/">http://nicht.s8.xrea.com/</a>&gt;</p>
+        <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+        <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+        <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+      </dd>
+
+      <dt>Lua</dt>
+      <dd>
+        <p>Copyright <c:e name="copy"/> 1994-2006 Lua.org, PUC-Rio.</p>
+        <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+        <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+        <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+      </dd>
+
+      <dt>lunit</dt>
+      <dd>
+        <p>Copyright <c:e name="copy"/> 2004 Michael Roth &lt;mroth@nessie.de&gt;</p>
+        <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+        <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+        <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+      </dd>
+    </dl>
+  </c:section>
+
+  <c:section id="terms">  <!--{{{2-->
+    <c:title>用語</c:title>
+
+    <dl>
+      <dt id="userdir">ユーザーディレクトリ</dt>
+      <dd>ユーザー固有の設定ファイル等が配置されるディレクトリ。<code>%USERDIR%</code>と表記。</dd>
+      <dd>次の順序で決定される:<dl>
+          <dt>環境変数<code>CEREJA_USERDIR</code>が設定されている場合</dt>
+          <dd><code>%CEREJA_USERDIR%</code></dd>
+          <dd>例: <code>C:\cereja\conf</code></dd>
+
+          <dt>環境変数<code>HOME</code>が設定されている場合</dt>
+          <dd><code>%HOME%\.cereja</code></dd>
+          <dd>例: <code>C:\home\kana\.cereja</code></dd>
+
+          <dt>設定されていない場合:</dt>
+          <dd><code>%HOMEDRIVE%%HOMEPATH%\Application Data\cereja</code></dd>
+          <dd>例: <code>C:\Documents and Settings\kana\Application Data\cereja</code></dd>
+      </dl></dd>
+
+      <dt id="sysdir">システムディレクトリ</dt>
+      <dd><code>cereja.exe</code>の存在するディレクトリ。<code>%SYSDIR%</code>と表記。</dd>
+    </dl>
+  </c:section>
+
+  <c:section id="files">  <!--{{{2-->
+    <c:title>ファイル構成</c:title>
+
+    <p>アーカイブ内のファイル構成は次の通り:</p>
+
+    <dl>
+      <dt><code>cereja.exe</code></dt>
+      <dd>シェル本体。</dd>
+
+      <dt><code>libcereja.dll</code></dt>
+      <dt><code>libcereja.lua</code></dt>
+      <dt><code>liblua.dll</code></dt>
+      <dt><code>libutf8api.dll</code></dt>
+      <dd><code>cereja.exe</code>が利用するライブラリ。</dd>
+
+      <dt><code>lib\</code></dt>
+      <dd>各種モジュールの配置場所。</dd>
+    </dl>
+
+    <p>上記以外のファイル・ディレクトリは実行時には不要です。</p>
+  </c:section>
+
+  <c:section id="install">  <!--{{{2-->
+    <c:title>インストール</c:title>
+
+    <p>インストール方法は次の通り:</p>
+
+    <ol>
+      <li>アーカイブを展開する。</li>
+      <li>作成されたディレクトリを任意の場所に移動・リネームする (例: <code>C:\shell\cereja</code>)</li>
+      <li><c:term>ユーザーディレクトリ</c:term>を作成する。</li>
+      <li>ユーザーディレクトリ下に<code>login.lua</code>と<code>logout.lua</code>を作成する。</li>
+    </ol>
+
+    <ul>
+      <li>設定例をアーカイブ内の<code>examples</code>ディレクトリに用意してあるので、適宜コピーして利用してください。</li>
+      <li>シェルとしての登録はユーザー側で行ってください。</li>
+      <li>なお、シェルとして登録しなくても普通のアプリケーションとして実行できます。</li>
+    </ul>
+  </c:section>
+
+  <c:section id="uninstall">  <!--{{{2-->
+    <c:title>アンインストール</c:title>
+
+    <p>インストール時に作成したファイル・ディレクトリを削除してください。シェル本体はレジストリの変更を一切行っていません。</p>
+  </c:section>
+
+  <c:section id="update">  <!--{{{2-->
+    <c:title>バージョンアップ</c:title>
+
+    <p>一度cerejaを終了し、新しいバージョンのアーカイブの内容を<c:term>システムディレクトリ</c:term>に上書きコピーしてください。</p>
+  </c:section>
+</c:section>
+
+
+
+
+
+
+
+
+<c:section id="invoke">  <!--{{{1-->
+  <c:title>実行</c:title>
+
+  <c:section id="process">  <!--{{{2-->
+    <c:title>実行過程</c:title>
+
+    <p>cerejaは起動時に<code>%USERDIR%\login.lua</code>を、終了時に<code>%USERDIR%\logout.lua</code>を実行します。</p>
+  </c:section>
+
+  <c:section id="end">  <!--{{{2-->
+    <c:title>終了方法</c:title>
+
+    <p>終了方法には次のものがあります:</p>
+    <ul>
+      <li>タスクマネージャから行う場合: タスクマネージャを起動。「アプリケーション」タブのタスクの一覧からcerejaを選び、「タスクの終了」を行う。</li>
+      <li>ホットキーで行う場合: <kbd>Alt-Ctrl-Shift-Win-F1</kbd>を押す。念のために用意しているだけなので、このような押し難い組み合わせになっています。</li>
+      <li>スクリプトから行う場合: 関数<code>cereja.exit</code>を呼び出す。</li>
+    </ul>
+  </c:section>
+
+  <c:section id="options">  <!--{{{2-->
+    <c:title>コマンドラインオプション</c:title>
+
+    <p>コマンドラインオプションは<code>%USERDIR%\login.lua</code>よりも先に処理されます。</p>
+    <p><code>--pre-exec</code>以外のオプションが指定された場合はシェルとして起動せず、すぐに終了します。そうでない場合はシェルとして起動します。</p>
+
+    <dl>
+      <dt><code>-e <var>SCRIPT</var></code></dt>
+      <dt><code>--exec=<var>SCRIPT</var></code></dt>
+      <dd>既に起動しているcerejaに<var>SCRIPT</var>を送り、実行させる。</dd>
+
+      <dt><code>-f <var>FILE</var></code></dt>
+      <dt><code>--file=<var>FILE</var></code></dt>
+      <dd><code>--exec</code>と似ているが、<var>FILE</var>の内容を実行させる。<code>--exec dofile("FILE")</code>と等価。</dd>
+
+      <dt><code>-E <var>SCRIPT</var></code></dt>
+      <dt><code>--pre-exec=<var>SCRIPT</var></code></dt>
+      <dd><code>login.lua</code>の実行に先立って<var>SCRIPT</var>を実行する。</dd>
+      <dd class="bugs">このオプションは同時に一つしか指定できない。複数指定した場合は最後に指定されたもののみが有効となる。</dd>
+
+      <dt><code>-h</code></dt>
+      <dt><code>--help</code></dt>
+      <dd>簡易ヘルプを表示。</dd>
+
+      <dt><code>-v</code></dt>
+      <dt><code>--version</code></dt>
+      <dd>バージョン情報を表示。</dd>
+    </dl>
+  </c:section>
+</c:section>
+
+
+
+
+
+
+
+
+<c:section id="script">  <!--{{{1-->
+  <c:title>スクリプト言語</c:title>
+
+  <p>cerejaが採用しているスクリプト言語は<a href="http://www.lua.org/">Lua</a>です。cerejaにはバージョン5.1のものが組み込まれています。</p>
+  <p>Luaの詳細については<a href="http://www.lua.org/manual/">Luaのマニュアル</a>を参照してください。</p>
+
+  <c:section id="diff">  <!--{{{2-->
+    <c:title>標準との差異</c:title>
+
+    <p>cerejaに組み込まれているLuaには、標準のものと比べて次のような差異があります。</p>
+
+    <dl>
+      <dt>マルチバイト文字列</dt>
+      <dd>マルチバイト文字列をサポートしています。例えば名前に日本語を含むファイルやディレクトリを正しく取り扱うことが出来ます。</dd>
+      <dd>エンコーディングはUTF-8を仮定しています。スクリプトを書く際は必ずUTF-8で保存するようにしてください。</dd>
+      <dd class="bugs">まだサポートは完全なものではありません。マルチバイト文字列を扱うことが出来るAPIは次のもののみです。<ul>
+        <li>cereja固有APIの全て。</li>
+        <li>Lua標準APIのうち、次のもの:<ul>
+          <li>ファイルを読み込むもの全て(<code>io.open</code>等)。</li>
+          <li><code>os.getenv</code></li>
+        </ul></li>
+      </ul></dd>
+
+      <dt>モジュールシステム</dt>
+      <dd>モジュールシステムは基本的にLuaのものと同じです。<a href="http://luaforge.net/">LuaForge</a>等で配布されている一般的なLua向けのモジュールはそのまま使うことができます。ただし、cereja用のモジュールについては次の点が異なります:<ul>
+        <li>cereja用のモジュールはLuaのみで記述されます。Luaで記述できない範囲についてはDLLの形で提供されますが、これは<dfn>エクステンション</dfn>と呼び、モジュールとは区別されます。</li>
+        <li>エクステンションのロードにはcereja独自のAPIを用います。</li>
+        <li>cereja用のモジュールとエクステンションは<code>%USERDIR%\lib</code>または<code>%SYSDIR%\lib</code>に配置されます。一方、一般的なLua向けのモジュールは<code>%USERDIR%\lib\lua</code>か<code>%SYSDIR%\lib\lua</code>に配置されます。</li>
+        <li><code>require</code>は次の動作をするものに置き換えられています: モジュールのロード中にエラーが発生した場合、そのモジュールをリロードすることができます (Lua標準のものはリロードできません)。</li>
+      </ul></dd>
+
+      <dt>追加API</dt>
+      <dd>Lua標準APIに加えて、いくつかAPIが追加されています。多くはcereja固有のAPIで、残りはLua標準APIに対する差分になります。</dd>
+    </dl>
+  </c:section>
+
+  <c:section id="additionals">  <!--{{{2-->
+    <c:title>追加API</c:title>
+
+    <p>Lua標準APIに対する差分として、次のものが追加されています。</p>
+
+    <dl>
+      <dt class="func">string.split(<var>s</var>, <var>pattern</var>)</dt>
+      <dd>文字列<var>s</var>を<var>pattern</var>で分割し、結果を配列として返します。</dd>
+      <dd class="bugs"><var>pattern</var>が空文字列にマッチする場合の動作は未定義です。</dd>
+      <dd><pre><![CDATA[string.split("foo::bar::baz", ":")
+  ==>  {"foo", "", "bar", "", "baz"}
+
+string.split("foo::bar::baz", "::")
+  ==>  {"foo", "bar", "baz"}
+
+string.split("foo::bar::baz", "%W+")
+  ==>  {"foo", "bar", "baz"}
+
+string.split("foo::bar::baz", ".+")
+  ==>  {"", ""}
+
+string.split("foo::bar::baz", "")
+  ==>  ]]><em>undefined</em></pre></dd>
+
+      <dt class="func">os.pathexistsp(<var>path</var>)</dt>
+      <dd><var>path</var>が存在するならば真を、そうでなければ偽を返します。</dd>
+
+      <dt class="func">package.findfile(<var>basename</var>, <var>path</var>)</dt>
+      <dd>名前が<var>basename</var>であるファイルを探します。見つかればそのファイルへのパスを、見つからなければ偽を返します。ファイルを探すディレクトリは<var>path</var>で指定します。値の詳細は<code>package.path</code>や<code>package.cpath</code>と同じです。</dd>
+
+      <dt class="const">NULL</dt>
+      <dd>Cの<code>NULL</code>を表す定数。</dd>
+
+      <dt class="func">range([<var>start=0</var>], <var>stop</var>)</dt>
+      <dd><var>start</var>以上<var>stop</var>未満の整数列を返します。</dd>
+      <dd>例: <pre>range(3, 9)  --&gt;  {3, 4, 5, 6, 7, 8}
+range(4)  --&gt;  {1, 2, 3}
+range(2, 1)  --&gt;  {}</pre></dd>
+
+      <dt class="func">mapx(<var>f</var>, <var>table</var>)</dt>
+      <dd><code><var>table</var>[1]</code>から<code><var>table</var>[#<var>table</var>]</code>の各値に対して関数<var>f</var>を適用し、その結果からなるテーブルを返します。in-placeです。</dd>
+      <dd>例: <pre>mapx(function () return v*2 end,
+     range(3))
+     --&gt;  {0, 2, 4}</pre></dd>
+
+      <dt class="func">sortx(<var>table</var>, [<var>key</var>])</dt>
+      <dd><code><var>table</var>[1]</code>から<code><var>table</var>[#<var>table</var>]</code>の各値をソートし、結果のテーブルを返します。in-placeです。</dd>
+      <dd><var>key</var>は1変数の関数で、もし与えられている場合、<var>table</var>の各値の比較は<var>key</var>によって変換された値同士で行います。</dd>
+    </dl>
+
+    <c:section id="bit">
+      <c:title>ビット演算</c:title>
+
+      <p>本当は<code>bit.and</code>のような名前にした方が良いのですが、<code>and</code>等の一部の名前がLuaの予約語と衝突するため、頭にbを付けた名前にしています。</p>
+      <dl>
+        <dt class="func">band(<var>n1</var>, <var>n2</var>)</dt>
+        <dt class="func">bor(<var>n1</var>, <var>n2</var>)</dt>
+        <dt class="func">bxor(<var>n1</var>, <var>n2</var>)</dt>
+        <dd>二つの整数<var>n1</var>と<var>n2</var>のビットごとの論理積/論理和/排他的論理和を返します。</dd>
+
+        <dt class="func">bnot(<var>n</var>)</dt>
+        <dd>整数<var>n</var>のビットごとの否定を返します。</dd>
+
+        <dt class="func">blshift(<var>n</var>, <var>count</var>)</dt>
+        <dt class="func">brshift(<var>n</var>, <var>count</var>)</dt>
+        <dd>整数<var>n</var>を<var>count</var>ビットだけ左シフト/右シフトした結果を返します。</dd>
+      </dl>
+    </c:section>
+  </c:section>
+
+  <c:section id="builtins">  <!--{{{2-->
+    <c:title>cereja固有API</c:title>
+
+    <p>cereja固有APIとして、次のものが利用できます。</p>
+    <dl>
+      <dt class="func">cereja.exit()</dt>
+      <dd>cerejaを終了します。確認のダイアログが表示されます。</dd>
+
+      <dt class="const">cereja.on_other_shellp</dt>
+      <dd>cerejaより先に他のシェルが起動されていたかどうかを表します。起動されていれば真、そうでなければ偽です。</dd>
+
+      <dt class="const">cereja.user_directory</dt>
+      <dt class="const">cereja.system_directory</dt>
+      <dd>ユーザーディレクトリ/システムディレクトリを表す文字列です。</dd>
+    </dl>
+
+    <dl>
+      <dt class="func">cereja.notice(<var>category</var>, <var>noticer</var>, <var>message</var>)</dt>
+      <dd>ユーザーにメッセージを通知します。<var>message</var>は通知内容を表す文字列、<var>noticer</var>は通知を行った場所 (例えばモジュール名) 等を表す文字列、<var>category</var>は通知内容の種類を表す定数です。</dd>
+      <dd><var>category</var>の取り得る値は次の通りです:<ul>
+        <li><code>cereja.NOTICE_DEBUG</code></li>
+        <li><code>cereja.NOTICE_INFO</code></li>
+        <li><code>cereja.NOTICE_WARNING</code></li>
+        <li><code>cereja.NOTICE_ERROR</code></li>
+      </ul></dd>
+      <dt class="func">cereja.noticef(<var>category</var>, <var>noticer</var>, <var>format</var>, ...)</dt>
+      <dd><code>cereja.notice(<var>category</var>, <var>noticer</var>, string.format(<var>format</var>, ...))</code>の省略形です。</dd>
+
+      <dt class="func">cereja.notice_debug(<var>noticer</var>, <var>message</var>)</dt>
+      <dt class="func">cereja.notice_info(<var>noticer</var>, <var>message</var>)</dt>
+      <dt class="func">cereja.notice_warning(<var>noticer</var>, <var>message</var>)</dt>
+      <dt class="func">cereja.notice_error(<var>noticer</var>, <var>message</var>)</dt>
+      <dd><code>cereja.notice(cereja.NOTICE_DEBUG, <var>noticer</var>, <var>message</var>)</code>等の省略形です。</dd>
+
+      <dt class="func">cereja.notice_debugf(<var>noticer</var>, <var>format</var>, ...)</dt>
+      <dt class="func">cereja.notice_infof(<var>noticer</var>, <var>format</var>, ...)</dt>
+      <dt class="func">cereja.notice_warningf(<var>noticer</var>, <var>format</var>, ...)</dt>
+      <dt class="func">cereja.notice_errorf(<var>noticer</var>, <var>format</var>, ...)</dt>
+      <dd><code>cereja.noticef(cereja.NOTICE_DEBUG, <var>noticer</var>, <var>format</var>, ...)</code>等の省略形です。</dd>
+
+      <dt class="func">cereja.add_notice_handler(<var>handler</var>)</dt>
+      <dd><code>cereja.notice</code>での通知の際に呼び出される関数 (ハンドラー) を登録します。ハンドラーは最近登録されたものから順に呼び出されます。最後にデフォルトのハンドラーが呼び出されます (デフォルトのハンドラーは通知内容を簡単に表示するだけです)。</dd>
+      <dd>ハンドラーは<code>handler(<var>category</var>, <var>noticer</var>, <var>message</var>, <var>noticedp</var>)</code>のような4つの引数を取る関数でなければなりません。最初の3つの引数は<code>cereja.notice</code>に渡されたものと同じです。最後の引数<var>noticedp</var>は既にユーザーに対して通知内容が表示されていれば真、そうでなければ偽になります。ハンドラーの戻り値は、ユーザーに対して通知内容を表示したのであれば真、そうでなければ引数<var>noticedp</var>と同じ値でなければなりません。</dd>
+      <dd>例えば通知内容のログを保存する場合は次のようにします。<pre>cereja.add_notice_handler(function (category, noticer, message, noticedp)
+  if category == cereja.NOTICE_DEBUG then c = 'Debug'
+  elseif category == cereja.NOTICE_INFO then c = 'Info'
+  elseif category == cereja.NOTICE_WARNING then c = 'Warning'
+  else c = 'Error' end
+
+  log = io.open(cereja.user_directory .. '\\notice.log', 'a')
+  if log ~= nil then
+    log:write((string.gsub(string.format('%s (%s): %s', c, noticer, message),
+                           '\n', '\n\t')))
+    log:write('\n')
+    log:close()
+  end
+  return noticedp
+end)</pre></dd>
+
+      <dt class="func">cereja.remove_notice_handler(<var>handler</var>)</dt>
+      <dd>ハンドラー<var>handler</var>の登録を解除します。<var>handler</var>が登録されていなかった場合は何もしません。</dd>
+    </dl>
+  </c:section>
+</c:section>
+
+
+
+
+
+
+
+
+<c:section id="module-shell">  <!--{{{1-->
+  <c:title>モジュール: shell</c:title>
+
+  <c:section id="shell">  <!--{{{2-->
+    <c:title>shell</c:title>
+
+    <p>このモジュールではシェルとして必要な雑多な機能を提供します。</p>
+
+    <dl>
+      <dt class="func">shell.execute(<var>operation</var>, <var>file</var>, [<var>parameters</var>, [<var>directory</var>, [<var>showcmd</var>]]])</dt>
+      <dt class="func">shell.execute(<var>file</var>)</dt>
+      <dd>指定されたファイルに対して操作を行います。成功時には偽を、失敗時にはエラーメッセージを文字列として返します。</dd>
+      <dd><var>operation</var>にはファイルに対してどのような操作をするかを指定します。文字列または偽でなければなりません。通常は<code>"open"</code>か偽を指定します。偽の場合はファイルに関連付けられたデフォルトの操作を行います。</dd>
+      <dd><var>file</var>には対象となるファイルを指定します。文字列でなければなりません。</dd>
+      <dd><var>parameters</var>には、<var>file</var>が実行ファイルの場合、それに対するオプションを指定します。文字列か偽でなければなりません。省略時は偽になります。<var>file</var>が実行ファイルでない場合は偽でなければなりません。</dd>
+      <dd><var>directory</var>には操作を行う際のディレクトリを指定します。文字列か偽でなければなりません。省略時は偽になります。</dd>
+      <dd><var>showcmd</var>には操作を行うアプリケーションがどのように表示されるかを指定します。利用可能な値についてはこのモジュールのソースを参照してください。通常は<code>shell.SW_SHOWNORMAL</code>を指定します。省略時は<code>shell.SW_SHOWNORMAL</code>になります。</dd>
+      <dd>引数が一つだけの場合は<code>shell.execute(false, <var>file</var>, false, false, shell.SW_SHOWNORMAL)</code>と等価です。</dd>
+      <dd><pre><![CDATA[-- BMPファイルを開く
+shell.execute("C:\\WINDOWS\\winnt256.bmp")
+
+-- BMPファイルを編集する
+shell.execute("edit", "C:\\WINDOWS\\winnt256.bmp")
+
+-- 「デスクトップのプロパティ」を開く
+shell.execute("C:\\WINDOWS\\system32\\desk.cpl")
+shell.execute(nil, "C:\\WINDOWS\\system32\\control.exe", "desk.cpl")
+
+-- 指定したサイトを開く
+shell.execute("http://nicht.s8.xrea.com/")]]></pre></dd>
+
+      <dt class="func">shell.message(<var>caption</var>, <var>text</var>, [<var>flags</var>])</dt>
+      <dd>メッセージを表示します。戻り値は<var>flags</var>とユーザーの操作によって変わります。取り得る値についてはこのモジュールのソースを参照してください。</dd>
+      <dd><var>caption</var>にはタイトルを指定します。文字列でなければなりません。</dd>
+      <dd><var>text</var>にはメッセージ本文を指定します。文字列でなければなりません。</dd>
+      <dd><var>flags</var>にはメッセージの表示に関する様々なフラグを指定します。利用可能な値についてはこのモジュールのソースを参照してください。省略時は<code>0</code>になります。</dd>
+      <dd><pre><![CDATA[function paranoia()
+  result = shell.message("The Computer",
+                         "Happiness is mandatory.  Are you happy?",
+                         shell.MB_YESNO)
+  if result == shell.IDYES then
+    shell.message("The Computer", "That's right citizen.")
+  else  -- result == shell.IDNO
+    shell.message("The Computer", "ZAPZAPZAPZAPZAPZAP!")
+  end
+end]]></pre></dd>
+
+      <dt class="func">shell.run_startup_programs()</dt>
+      <dd>ログイン時に起動すべきプログラムを起動します。対象となるプログラムはスタートアップ及びレジストリに登録されているものです。</dd>
+
+      <dt class="func">shell.system_shutdown()</dt>
+      <dt class="func">shell.system_reboot()</dt>
+      <dt class="func">shell.system_logoff()</dt>
+      <dt class="func">shell.system_suspend()</dt>
+      <dt class="func">shell.system_hibernate()</dt>
+      <dt class="func">shell.system_lock()</dt>
+      <dd>システムのシャットダウン/再起動/ログオフ/suspend (スタンバイ)/hibernate (休止状態)/ロックを行います。ロック以外の動作については確認のダイアログが表示されます。</dd>
+    </dl>
+  </c:section>
+
+  <c:section id="tray">  <!--{{{2-->
+    <c:title>shell.tray</c:title>
+
+    <p>このモジュールでは「トレイ」のサービスやそれに関する機能を提供します。あくまで基本的なサービスや機能を提供するだけであり、トレイに対するユーザーインターフェースは提供されません。ユーザーインターフェースについては<a href="/module-ui/tray">ui.tray</a>等の他のモジュールを使ってください。</p>
+    <p>実のところ<a href="http://blogs.msdn.com/oldnewthing/archive/2003/09/10/54831.aspx">「トレイ」という名前は誤り</a>で、正確には「タスクバー通知領域 (Taskbar Notification Area)」なのですが、ここでは敢えて「トレイ」という名前を使っています。何故なら、cereja本体ではタスクバーや通知領域に相当するものが提供されませんし、何より名前が長いからです。</p>
+    <p class="bugs"><code>NIM_SETFOCUS</code>及び<code>NIM_SETVERSION</code>に対応していません。</p>
+    <p class="bugs">一部のアプリケーションのアイコンは正しく表示されません。</p>
+    <p class="bugs">cerejaより先に他のシェルが起動している場合、一部のアプリケーションのアイコンはcerejaから扱うことはできません。</p>
+
+    <dl>
+      <dt class="func">shell.tray.get_icon_count()</dt>
+      <dd>トレイに登録されているアイコンの総数を返します。</dd>
+
+      <dt class="func">shell.tray.get_icon_data(<var>index</var>, <var>member</var>)</dt>
+      <dd>トレイに登録されているアイコンのデータを返します。<var>index</var>は対象となるアイコンを、<var>member</var>は対象となるデータを指定します。</dd>
+      <dd class="stub"><var>member</var>は文字列で、<var>member</var>と得られるデータの対応は次の通りです:<dl>
+        <dt><code>"dwInfoFlags"</code></dt>  <dd>(number)</dd>
+        <dt><code>"hIcon"</code></dt>  <dd>(light userdata) 表示されるアイコンへのハンドル。</dd>
+        <dt><code>"hWnd"</code></dt>  <dd>(light userdata) アイコンを登録したウィンドウへのハンドル。</dd>
+        <dt><code>"szInfo"</code></dt>  <dd>(string) バルーンのテキスト。</dd>
+        <dt><code>"szInfoTitle"</code></dt>  <dd>(string) バルーンのタイトル。</dd>
+        <dt><code>"szTip"</code></dt>  <dd>(string) ツールチップのテキスト。</dd>
+        <dt><code>"uCallbackMessage"</code></dt>  <dd>(number)</dd>
+        <dt><code>"uID"</code></dt>  <dd>(number)</dd>
+        <dt><code>"uTimeout"</code></dt>  <dd>(number) バルーンが消えるまでの時間 (ミリ秒単位)。</dd>
+      </dl></dd>
+
+      <dt class="func">shell.tray.move_icon(<var>index</var>, <var>dest</var>)</dt>
+      <dd>トレイのアイコンを指定した位置に移動します。<var>index</var>は移動するアイコンの、<var>dest</var>は移動先のインデックスです。</dd>
+      <dd>インデックスは整数です。iは先頭からi番目のアイコンを指します。-iの場合は末尾からi番目のアイコンを指します。0または絶対値がアイコンの総数を超えるインデックスは無効です。</dd>
+
+      <dt class="func">shell.tray.move_icon_first(<var>index</var>)</dt>
+      <dt class="func">shell.tray.move_icon_last(<var>index</var>)</dt>
+      <dd><var>index</var>で指定されたアイコンを先頭/末尾に移動します。</dd>
+
+      <dt class="func">shell.tray.reset_icons()</dt>
+      <dd>トレイに登録されているアイコンを全て削除し、登録しなおします。</dd>
+
+      <dt class="func">shell.tray.shift_icons(<var>count</var>)</dt>
+      <dd>トレイの各アイコン全体の位置を<var>count</var>個だけ移動します。端にあるアイコンは反対側の端に移動します。<var>count</var>が正の場合は先頭から末尾に向かって、負の場合は末尾から先頭に向かって移動します。</dd>
+
+      <dt class="func">shell.tray.sort_icons([<var>key</var>])</dt>
+      <dd>トレイに登録されているアイコンをソートします。ソートする基準は<var>key</var>によって決まります。<var>key</var>は関数で、引数としてアイコンのインデックスを取り、戻り値としてソートに用いる値を返します。<var>key</var>が省略された場合、ツールチップのテキスト(<code>"szTip"</code>)を大文字小文字の区別無く比較します。</dd>
+
+      <dt class="func">shell.tray.subscribe(<var>group_name</var>, <var>procedure</var>)</dt>
+      <dd>トレイの内容が変化した際に呼び出されるハンドラーを登録します。</dd>
+      <dd><var>group_name</var>は文字列で、<code>shell.tray.unsubscribe()</code>で用いられます。</dd>
+      <dd><var>procedure</var>は関数で、トレイの内容が変化する度に呼び出されます。<var>procedure</var>の戻り値は単に無視されます。<var>procedure</var>は以下の引数を伴って呼び出されます:<dl>
+        <dt><code>event</code></dt>
+        <dd>トレイの内容が変化した原因を示す値。値とその意味は次の通り:<dl>
+          <dt><code>shell.tray.NIM_ADD</code></dt>  <dd>アイコンが追加された。</dd>
+          <dt><code>shell.tray.NIM_DELETE</code></dt>  <dd>アイコンが削除された。</dd>
+          <dt><code>shell.tray.NIM_MODIFY</code></dt>  <dd>アイコンのデータが更新された。</dd>
+        </dl></dd>
+
+        <dt><code>icon_index</code></dt>
+        <dd>変化のあったアイコンのインデックス。</dd>
+        <dd class="bugs"><code>shell.tray.NIM_DELETE</code>時のこの値は無意味です。</dd>
+
+        <dt><code>flags</code></dt>
+        <dd>アイコンのデータのうち、変化の合った項目を示すフラグ。各フラグと対応する項目は次の通り:<dl>
+          <dt><code>shell.tray.NIF_ICON</code></dt>  <dd><code>"hIcon"</code></dd>
+          <dt><code>shell.tray.NIF_INFO</code></dt>  <dd><code>"szInfo"</code>, <code>"szInfoTitle"</code>, <code>"dwInfoFlags"</code>, <code>"uTimeout"</code></dd>
+          <dt><code>shell.tray.NIF_MESSAGE</code></dt>  <dd><code>"uCallbackMessage"</code></dd>
+          <dt><code>shell.tray.NIF_TIP</code></dt>  <dd><code>"szTip"</code></dd>
+        </dl></dd>
+      </dl></dd>
+
+      <dt class="func">shell.tray.unsubscribe(<var>specifier</var>)</dt>
+      <dd><code>shell.tray.subscribe()</code>で登録されたハンドラーの登録を解除します。<var>specifier</var>は文字列または関数で、これと一致する<var>procedure</var>または<var>group_name</var>を持つハンドラーの登録が解除されます。</dd>
+      <dd>戻り値は数値で、登録が解除されたハンドラーの総数です。</dd>
+    </dl>
+  </c:section>
+</c:section>
+
+
+
+
+
+
+
+
+<c:section id="module-ui">  <!--{{{1-->
+  <c:title>モジュール: ui</c:title>
+
+  <c:section id="key">  <!--{{{2-->
+    <c:title>ui.key</c:title>
+
+    <p>このモジュールではキーボード関連のAPIを提供します。</p>
+
+    <dl>
+      <dt class="func">ui.key.pressedp(<var>key</var>)</dt>
+      <dd><var>key</var>が押されていれば真を、そうでなければ偽を返します。<var>key</var>はキーを表す文字列で、<code>ui.key.string_to_vk</code>で変換可能なものでなければなりません。</dd>
+
+      <dt class="func">ui.key.string_to_vk(<var>name</var>)</dt>
+      <dd><var>name</var>で表されるキーに対応するvirtual-key codeを返します。<var>name</var>の大文字/小文字は区別されません。デフォルトで変換可能な値についてはこのモジュールのソースを参照してください。</dd>
+
+      <dt class="func">ui.key.vk_name_table_add(<var>name</var>, <var>vk</var>)</dt>
+      <dd><code>ui.string_to_vk</code>で変換可能な値を追加します。</dd>
+
+      <dt class="func">ui.key.string_to_modifier(<var>name</var>)</dt>
+      <dd><var>name</var>で表されるモディファイヤーに対応する値を返します。<var>name</var>の大文字/小文字は区別されません。デフォルトで変換可能な値についてはこのモジュールのソースを参照してください。</dd>
+
+      <dt class="func">ui.key.modifier_name_table_add(<var>name</var>, <var>modifier</var>)</dt>
+      <dd><code>ui.string_to_modifier</code>で変換可能な値を追加します。</dd>
+
+      <dt class="func">ui.key.string_to_vk_and_modifiers(<var>key_combo</var>)</dt>
+      <dd><var>key_combo</var>で表されるキーとモディファイヤーの値を返します。戻り値は二つで、一つ目はvirtual-key code、二つ目はモディファイヤーを表す値です。</dd>
+      <dd><var>key_combo</var>は0個以上のモディファイヤ名とキー名をハイフンで繋げた文字列です (例: <code>Ctrl-Alt-Del</code>)。</dd>
+
+      <dt class="const">ui.key.VK_*</dt>
+      <dt class="const">ui.key.MOD_*</dt>
+      <dd>Virtual-key code及びモディファイヤを表す定数です。詳細はこのモジュールのソースを参照してください。</dd>
+    </dl>
+  </c:section>
+
+  <c:section id="hotkey">  <!--{{{2-->
+    <c:title>ui.hotkey</c:title>
+
+    <p>このモジュールではホットキーに関する機能を提供します。</p>
+
+    <dl>
+      <dt class="func">ui.hotkey.register(<var>key_combo</var>, <var>action</var>)</dt>
+      <dd>ホットキーを登録します。既に同じキーの組み合わせに対してホットキーが登録されている場合はエラーとなります。</dd>
+      <dd><var>key_combo</var>はキーの組み合わせを指定します。<code>ui.key.string_to_vk_and_modifiers</code>で変換可能な文字列でなければなりません。</dd>
+      <dd><var>action</var>はホットキーが押されたときに呼び出す手続きを指定します。呼び出されるときの引数はありません。</dd>
+
+      <dt class="func">ui.hotkey.reset()</dt>
+      <dd>登録済みのホットキーを全て削除します。</dd>
+    </dl>
+  </c:section>
+
+  <c:section id="tray">  <!--{{{2-->
+    <c:title>ui.tray</c:title>
+
+    <p>このモジュールではトレイに対するユーザーインターフェースを提供します。このモジュールではトレイの内容を表示するウィンドウを作成します。ウィンドウは基本的に隠れており、必要に応じて表示させる形を取ります。</p>
+    <p>ウィンドウはキーボードでのみ操作可能です。デフォルトのキーバインドについてはこのモジュールのソースを参照してください。</p>
+
+    <dl>
+      <dt class="func">ui.tray.activate()</dt>
+      <dd>ウィンドウをアクティブにします。ウィンドウが隠れていた場合は表示してからアクティブにします。</dd>
+
+      <dt class="func">ui.tray.set_visibility([<var>flag</var>])</dt>
+      <dd>ウィンドウの表示状態を切り替えます。<var>flag</var>が真であれば表示し、偽であれば隠します。<var>flag</var>が省略された場合はトグルになります。</dd>
+
+      <dt class="func">ui.tray.hotkey_add(<var>key_combo</var>, <var>command</var>)</dt>
+      <dd>ウィンドウ用のホットキーを登録します。登録したホットキーはウィンドウがアクティブである場合にのみ有効です。</dd>
+      <dd><var>key_combo</var>はキーの組み合わせを指定します。<code>ui.key.string_to_vk_and_modifiers</code>で変換可能な文字列でなければなりません。</dd>
+      <dd><var>command</var>はウィンドウに対する動作を指定します。次の値のどれかでなければなりません。<dl>
+        <dt class="const">ui.tray.CMD_SHOW</dt>
+        <dt class="const">ui.tray.CMD_HIDE</dt>
+        <dd>ウィンドウの表示状態を変更します。</dd>
+
+        <dt class="const">ui.tray.CMD_CURSOR_NEXT</dt>
+        <dt class="const">ui.tray.CMD_CURSOR_PREV</dt>
+        <dt class="const">ui.tray.CMD_CURSOR_FIRST</dt>
+        <dt class="const">ui.tray.CMD_CURSOR_LAST</dt>
+        <dd>カーソルを移動します。</dd>
+
+        <dt class="const">ui.tray.CMD_SEND_LEFT_CLICK</dt>
+        <dt class="const">ui.tray.CMD_SEND_LEFT_DOUBLE_CLICK</dt>
+        <dt class="const">ui.tray.CMD_SEND_RIGHT_CLICK</dt>
+        <dt class="const">ui.tray.CMD_SEND_RIGHT_DOUBLE_CLICK</dt>
+        <dt class="const">ui.tray.CMD_SEND_MIDDLE_CLICK</dt>
+        <dt class="const">ui.tray.CMD_SEND_MIDDLE_DOUBLE_CLICK</dt>
+        <dd>トレイのアイコンをクリックしたときの動作をエミュレートします。対象はカーソルの指すアイコンです。</dd>
+
+        <dt class="const">ui.tray.CMD_ICON_MOVE_NEXT</dt>
+        <dt class="const">ui.tray.CMD_ICON_MOVE_PREV</dt>
+        <dt class="const">ui.tray.CMD_ICON_MOVE_FIRST</dt>
+        <dt class="const">ui.tray.CMD_ICON_MOVE_LAST</dt>
+        <dt class="const">ui.tray.CMD_ICON_SHIFT_NEXT</dt>
+        <dt class="const">ui.tray.CMD_ICON_SHIFT_PREV</dt>
+        <dd>トレイのアイコンの位置を変更します。</dd>
+      </dl></dd>
+
+      <dt class="func">ui.tray.hotkey_reset()</dt>
+      <dd><code>ui.tray.hotkey_add</code>で登録されたホットキーを全て削除します。</dd>
+
+      <dt class="const">ui.tray.window</dt>
+      <dd>ウィンドウのハンドルです。</dd>
+
+      <dt class="var">ui.tray.hide_when_inactivep</dt>
+      <dd>ウィンドウがアクティブでなくなったときに隠れるかどうかを指定します。値が真であれば隠れ、偽であれば隠れません。</dd>
+    </dl>
+  </c:section>
+
+  <c:section id="window">  <!--{{{2-->
+    <c:title>ui.window</c:title>
+
+    <p>このモジュールではウィンドウ関連の機能を提供します。</p>
+    <p>以下の説明では、<var>hwnd</var>は操作対象のウィンドウへのハンドルを表します (ハンドルは個々のウィンドウを識別するための値)。<var>hwnd</var>が省略されるか<code>NULL</code>の場合は現在アクティブなウィンドウを対象とします。</p>
+
+    <c:section id="size">
+      <c:title>サイズ</c:title>
+
+      <p class="bugs">最小化/最大化を含め、ウィンドウのサイズを変更するAPIは、対象のウィンドウが通常はサイズの変更ができないものであっても強制的にサイズを変更します。サイズ変更可能な場合にのみ処理をするには<code>ui.window.resizablep(hwnd) and ui.window.maximize(hwnd)</code>等としてください。</p>
+
+      <dl>
+        <dt class="func">ui.window.minimizedp([<var>hwnd</var>])</dt>
+        <dt class="func">ui.window.maximizedp([<var>hwnd</var>])</dt>
+        <dd>ウィンドウが最小化/最大化されていれば真を、そうでなければ偽を返します。</dd>
+
+        <dt class="func">ui.window.resizablep([<var>hwnd</var>])</dt>
+        <dd>ウィンドウのサイズが変更可能であれば真を、そうでなければ偽を返します。</dd>
+
+        <dt class="func">ui.window.minimize([<var>hwnd</var>, [<var>use_alt_methodp=false</var>]])</dt>
+        <dt class="func">ui.window.maximize([<var>hwnd</var>])</dt>
+        <dd>ウィンドウを最小化/最大化します。トグルです。</dd>
+        <dd><var>use_alt_methodp</var>が真の場合、<a href="http://support.microsoft.com/kb/293215/en-us">対象ウィンドウを持つプロセスのworking setが切り詰められる現象</a>を回避します。</dd>
+
+        <dt class="func">ui.window.restore([<var>hwnd</var>])</dt>
+        <dd>最小化/最大化されているウィンドウを元に戻します。</dd>
+
+        <dt class="func">ui.window.resize(<var>width</var>, <var>height</var>, [<var>hwnd</var>])</dt>
+        <dd>ウィンドウの幅と高さを変更します。<var>width</var>と<var>height</var>の単位はピクセルです。</dd>
+
+        <dt class="func">ui.window.maximize_vertically([<var>hwnd</var>])</dt>
+        <dt class="func">ui.window.maximize_horizontally([<var>hwnd</var>])</dt>
+        <dd>ウィンドウを縦方向/横方向にのみ最大化します。最大化するのはウィンドウの存在するモニターの範囲内までです。これはトグルになっており、既に該当方向に最大化されている場合は元の位置とサイズに戻ります。</dd>
+        <dd class="bugs">これは通常の最大化とは異なり、サイズを変更するだけです。よって<code>ui.window.restore</code>等で「元のサイズに戻す」ことはできません。</dd>
+        <dd class="bugs">これらのAPIはウィンドウの元の位置やサイズを保存するために<code>ui.window.set_property</code>を使っています。使用しているキーは<code>cereja.ui.window:</code>で始まる文字列ですので、これに該当するキーは使わないでください。</dd>
+      </dl>
+    </c:section>
+
+    <c:section id="pos">
+      <c:title>位置</c:title>
+
+      <dl>
+        <dt class="func">ui.window.move(<var>tx</var>, <var>ty</var>, <var>dx</var>, <var>dy</var>, [<var>hwnd</var>])</dt>
+        <dd>ウィンドウを<var>dx</var>と<var>dy</var>で指定された位置へ移動します。</dd>
+        <dd><var>tx</var>と<var>ty</var>はそれぞれ<var>dx</var>と<var>dy</var>の値の解釈方法を指定します。次の値のどれかでなければなりません。<dl>
+          <dt><code>"r"</code></dt>
+          <dd>現在のウィンドウの位置に対する相対座標。</dd>
+
+          <dt><code>"a"</code></dt>
+          <dd>ウィンドウの存在するモニターにおける絶対座標。値が正の場合はモニターの左端/上端を0とした座標に、値が負の場合はモニターの右端/下端を0とした座標になる。</dd>
+
+          <dt><code>"c"</code></dt>
+          <dd><code>"a"</code>と似ているが、モニターの中央を0とした座標。</dd>
+
+          <dt><code>"A"</code></dt>
+          <dt><code>"C"</code></dt>
+          <dt><code>"R"</code></dt>
+          <dd><code>"a"</code>/<code>"c"</code>/<code>"r"</code>と似ているが、基準はvirtual screen (全てのモニターを含む矩形領域) になる。マルチモニター環境でなければ<code>"a"</code>/<code>"c"</code>/<code>"r"</code>と同じ動作になる。</dd>
+        </dl>また、末尾に<code>%</code>がある場合、値はモニターまたはvirtual screenの幅/高さに対する割合と解釈されます。</dd>
+
+        <dt class="func">ui.window.always_on_topp([<var>hwnd</var>])</dt>
+        <dd>ウィンドウが常に手前に表示されるのであれば真を、そうでなければ偽を返します</dd>
+        <dt class="func">ui.window.set_always_on_top([<var>hwnd</var>])</dt>
+        <dd>ウィンドウが常に手前に表示されるかどうかを変更します。トグルです。</dd>
+
+        <dt class="func">ui.window.activate([<var>hwnd</var>])</dt>
+        <dd>ウィンドウをアクティブにします。</dd>
+
+        <dt class="func">ui.window.raise([<var>hwnd</var>])</dt>
+        <dt class="func">ui.window.lower([<var>hwnd</var>])</dt>
+        <dd>ウィンドウを手前/奥に移動します。</dd>
+
+        <dt class="func">ui.window.snap_to_left([<var>hwnd</var>])</dt>
+        <dt class="func">ui.window.snap_to_top([<var>hwnd</var>])</dt>
+        <dt class="func">ui.window.snap_to_right([<var>hwnd</var>])</dt>
+        <dt class="func">ui.window.snap_to_bottom([<var>hwnd</var>])</dt>
+        <dt class="func">ui.window.snap_to_center([<var>hwnd</var>])</dt>
+        <dd>ウィンドウをモニターの左端/上端/右端/下端/中央に移動します。</dd>
+
+        <dt class="func">ui.window.move_to_monitor(<var>hmonitor</var>, [<var>hwnd</var>])</dt>
+        <dd>ウィンドウを指定されたモニター<var>hmonitor</var>に移動します。</dd>
+        <dt class="func">ui.window.move_to_next_monitor(<var>delta</var>, [<var>hwnd</var>])</dt>
+        <dd>ウィンドウを、現在位置のモニターを基準にした「次」のモニターに移動します。<var>delta</var>は整数で、1は次のモニター、2は次の次のモニター、以下同様にして「次」のモニターを表します。負の数を指定すると逆方向のモニターを表します。</dd>
+        <dt class="func">ui.window.move_visibly([<var>hwnd</var>])</dt>
+        <dd>ウィンドウを全体がモニター内に表示されるような位置へ移動します。</dd>
+      </dl>
+    </c:section>
+
+    <c:section id="etc">
+      <c:title>その他</c:title>
+
+      <dl>
+        <dt class="func">ui.window.set_alpha(<var>alpha</var>, [<var>hwnd</var>])</dt>
+        <dd>ウィンドウの透明度を変更します。トグルです。</dd>
+        <dd><var>alpha</var>は0以上255以下の整数です。0で完全に透明になり、255で完全に不透明 (つまり通常の状態) になります。</dd>
+
+        <dt class="func">ui.window.find_by_name([<var>class_name</var>, [<var>title_name</var>]])</dt>
+        <dd>指定された条件に合うウィンドウを探します。見つかればそのウィンドウへのハンドルを、見つからなければ<code>NULL</code>を返します。</dd>
+        <dd><var>class_name</var>はクラス名を、<var>title_name</var>はタイトルを文字列で指定します。省略するか偽を指定した場合、任意のクラス名/タイトルにマッチします。</dd>
+        <dt class="func">ui.window.find_by_point(<var>x</var>, <var>y</var>)</dt>
+        <dd>点 (<var>x</var>, <var>y</var>) を含むウィンドウへのハンドルを返します。点の座標の基準はvirtual screenで、単位はピクセルです。見つからなければ<code>NULL</code>を返します。</dd>
+
+        <dt class="func">ui.window.validp(<var>hwnd</var>)</dt>
+        <dd><var>hwnd</var>に対応するウィンドウが存在すれば真を、存在しなければ偽を返します。</dd>
+
+        <dt class="func">ui.window.post_message(<var>hwnd</var>, <var>message</var>, [<var>wparam</var>, [<var>lparam</var>]])</dt>
+        <dd>ウィンドウへメッセージを送ります。<var>message</var>、<var>wparam</var>、<var>lparam</var>は整数でなければなりません。<var>wparam</var>と<var>lparam</var>省略時の値は<code>0</code>です。</dd>
+
+        <dt class="func">ui.window.get_minimized_metrics()</dt>
+        <dt class="func">ui.window.set_minimized_metrics(<var>metrics</var>)</dt>
+        <dd>最小化されたウィンドウの表示に関する情報<var>metrics</var>を取得/変更します。</dd>
+        <dd class="stub"><var>metrics</var>はテーブルで、内容は次の通り。<dl>
+          <dt><code>"width"</code></dt>
+          <dd>最小化されたウィンドウの幅。</dd>
+          <dt><code>"horizontal_gap"</code></dt>
+          <dd>最小化されたウィンドウ間の横方向のマージン。</dd>
+          <dt><code>"vertical_gap"</code></dt>
+          <dd>最小化されたウィンドウ間の縦方向のマージン。</dd>
+          <dt><code>"arrange"</code></dt>
+          <dd>最小化されたウィンドウをどのように表示するかのフラグ。利用可能な値はこのモジュールのソースを参照してください。</dd>
+        </dl></dd>
+
+        <dt class="func">ui.window.set_property(<var>hwnd</var>, <var>key</var>, <var>value</var>)</dt>
+        <dd>ウィンドウに値<var>value</var>を関連付けます。関連付けた値は<var>key</var>で区別され、<code>ui.window.get_property</code>を使って得ることができます。</dd>
+        <dd>戻り値は以前関連付けられていた値です。値が関連付けられていなかった場合は<code>nil</code>を返します。</dd>
+        <dt class="func">ui.window.get_property(<var>hwnd</var>, <var>key</var>)</dt>
+        <dd>ウィンドウに関連付けられた値を返します。対応する値が存在しなければ<code>nil</code>を返します。</dd>
+        <dt class="func">ui.window.remove_property(<var>hwnd</var>, <var>key</var>)</dt>
+        <dd>ウィンドウに関連付けられた値を削除します。対応する値が存在しなければ何もしません。戻り値はありません。</dd>
+
+        <dt class="func">ui.window.get_foreground_window()</dt>
+        <dd>現在アクティブなウィンドウへのハンドルを返します。</dd>
+
+        <dt class="func">ui.window.get_placement([<var>hwnd</var>])</dt>
+        <dd>ウィンドウの位置とサイズを返します。戻り値は最初から順にX座標、Y座標、幅、高さです (単位はピクセル)。</dd>
+
+        <dt class="func">ui.window.get_class_name([<var>hwnd</var>])</dt>
+        <dd>ウィンドウのクラス名を返します。</dd>
+        <dt class="func">ui.window.get_title_name([<var>hwnd</var>])</dt>
+        <dd>ウィンドウのタイトル名を返します。</dd>
+
+        <dt class="func">ui.window.get_style([<var>hwnd</var>])</dt>
+        <dt class="func">ui.window.get_exstyle([<var>hwnd</var>])</dt>
+        <dd>ウィンドウの「スタイル」を返します。これはウィンドウに関する様々な属性を表すフラグの集合です。フラグの詳細についてはこのモジュールのソースを参照してください。</dd>
+        <dd>例: <pre>function visiblep(hwnd)
+  return band(ui.window.get_style(hwnd), ui.window.WS_VISIBLE)
+end</pre></dd>
+
+        <dt class="func">ui.window.enumerate(<var>proc</var>)</dt>
+        <dd>トップレベルウィンドウを列挙します。各ウィンドウについて、そのハンドルを引数として関数<var>proc</var>を呼び出します。戻り値は、列挙が完全に終わった場合は真、列挙が中断された場合は偽です。<var>proc</var>の戻り値が偽の場合、列挙を中断します。</dd>
+        <dd>例: <pre>function get_all_windows()
+  local list = {}
+  ui.window.enumerate(function (hwnd)
+    table.insert(list, hwnd)
+    return true
+  end)
+  return list;
+end</pre></dd>
+
+        <!--
+        <dt class="func">ui.window.get_application_list()</dt>
+        <dd>Alt-Tabで選択可能なウィンドウへのハンドルの一覧を返します。戻り値は配列で、各要素はウィンドウへのハンドルです。</dd>
+        <dt class="func">ui.window.show_application_list()</dt>
+        <dd>Alt-Tabで選択可能なウィンドウに関する情報を表示します。</dd>
+        -->
+      </dl>
+    </c:section>
+  </c:section>
+
+  <c:section id="monitor">  <!--{{{2-->
+    <c:title>ui.monitor</c:title>
+
+    <p>このモジュールではモニター関連のAPIを提供します。</p>
+    <p>以下の説明では、<var>hmonitor</var>はモニターへのハンドルを表します (ハンドルは個々のモニターを識別するための値)。また、<var>flags</var>が省略された場合は<code>ui.monitor.DEFAULT_NEAREST</code>が指定されたものと解釈されます。</p>
+
+    <dl>
+      <dt class="func">ui.monitor.find_all()</dt>
+      <dd>全てのモニターへのハンドルをテーブルにまとめて返します。</dd>
+      <dt class="func">ui.monitor.find_by_point(<var>x</var>, <var>y</var>, [<var>flags</var>])</dt>
+      <dd>指定された点を含むモニターへのハンドルを返します。座標の基準はvirtual screenで、単位はピクセルです。</dd>
+      <dt class="func">ui.monitor.find_by_rect(<var>x</var>, <var>y</var>, <var>width</var>, <var>height</var>, [<var>flags</var>])</dt>
+      <dd>指定された矩形領域と交差する領域が最大であるモニターへのハンドルを返します。座標の基準はvirtual screenで、単位はピクセルです。</dd>
+      <dt class="func">ui.monitor.find_by_window([<var>hwnd</var>, [<var>flags</var>]])</dt>
+      <dd>指定されたウィンドウと交差する領域が最大であるモニターへのハンドルを返します。</dd>
+      <dt class="func">ui.monitor.find_next_monitor(<var>delta</var>, [<var>base_hmonitor</var>])</dt>
+      <dd>基準となるモニター<var>base_hmonitor</var>から<var>delta</var>だけ離れたモニターへのハンドルを返します。</dd>
+      <dd><var>delta</var>は整数で、0は基準となるモニター、1はその次のモニター、2は次の次のモニター、以下同様にしてn+1はnの次のモニターを表します。負の数は逆方向のモニターを表します。</dd>
+
+      <dt class="func">ui.monitor.get_info(<var>hmonitor</var>)</dt>
+      <dd>モニターに関する情報をテーブルにまとめて返します。テーブルの内容は次の通りです:<dl>
+        <dt><code>'placement'</code></dt>
+        <dd>Virtual screen中でのモニターの領域です。値はテーブルで、その内容はX座標、Y座標、幅、高さです。</dd>
+        <dt><code>'workarea'</code></dt>
+        <dd>モニターの作業領域 (最大化したウィンドウが含まれる領域) です。値の構成は<code>'placement'</code>と同様です。</dd>
+        <dt><code>'flags'</code></dt>
+        <dd>各種フラグです。現在のところは、プライマリーモニターであるかどうかを示すだけです (真であればプライマリーモニターです)。</dd>
+      </dl></dd>
+      <dt class="func">ui.monitor.get_count()</dt>
+      <dd>モニターの総数を返します。</dd>
+      <dt class="func">ui.monitor.get_vscreen_placement()</dt>
+      <dd>Virtual screenの領域を示す値を返します。値はテーブルで、その内容はX座標、Y座標、幅、高さです。</dd>
+    </dl>
+
+    <p><var>flags</var>に指定できる値とその意味は次の通りです:</p>
+    <dl>
+      <dt class="const">ui.monitor.DEFAULT_NEAREST</dt>
+      <dd>条件を満たすモニターが見つからなかった場合、最も近いモニターへのハンドルを返します。</dd>
+      <dt class="const">ui.monitor.DEFAULT_NULL</dt>
+      <dd>条件を満たすモニターが見つからなかった場合、<code>NULL</code>を返します。</dd>
+      <dt class="const">ui.monitor.DEFAULT_PRIMARY</dt>
+      <dd>条件を満たすモニターが見つからなかった場合、プライマリーモニターへのハンドルを返します。</dd>
+    </dl>
+  </c:section>
+</c:section>
+
+
+
+
+
+
+
+
+<c:section id="module-app">  <!--{{{1-->
+  <c:title>モジュール: app</c:title>
+
+  <p>このモジュールでは各種アプリケーションに対するインターフェースを提供します。</p>
+
+  <c:section id="snarl">  <!--{{{2-->
+    <c:title>app.snarl</c:title>
+
+    <p>このモジュールでは<a href="http://www.fullphat.net/">Snarl</a>に対するインターフェースを提供します。</p>
+    <p class="bugs">最低限のインターフェースしか提供していません。</p>
+
+    <dl>
+      <dt class="func">app.snarl.get_window()</dt>
+      <dd>Snarlのウィンドウへのハンドルを返します。</dd>
+
+      <dt class="func">app.snarl.show_message(<var>title</var>, <var>text</var>, [<var>timeout</var>, [<var>icon_path</var>, [<var>reply_hwnd</var>, [<var>reply_message</var>]]]])</dt>
+      <dd>Snarlを利用してメッセージを表示します。戻り値は表示されたメッセージを識別するための値です。</dd>
+      <dd><dl>
+        <dt><var>title</var></dt>  <dd>文字列: メッセージのタイトル。</dd>
+        <dt><var>text</var></dt>  <dd>文字列: メッセージの本文。</dd>
+        <dt><var>timeout</var></dt>  <dd>数値: メッセージが自動的に消えるまでの時間(単位は秒)。0の場合はユーザーがクリックするまで消えない。デフォルトは0。</dd>
+        <dt><var>icon_path</var></dt>  <dd>文字列: メッセージに添えるアイコンへのパス。デフォルトは<code>""</code>で、アイコンは表示されない。</dd>
+        <dt><var>reply_hwnd</var></dt>  <dd>hwnd: ユーザーがメッセージをクリックした場合やタイムアウトで消えた場合にその旨を伝えるウィンドウへのハンドル。デフォルトは<code>NULL</code>で、通知は行われない。</dd>
+        <dt><var>reply_message</var></dt>  <dd>数値: <var>reply_hwnd</var>への通知を行う際に用いるメッセージの値。この値は<code>reply_hwnd</code>が妥当な値でない限り意味を持たない。</dd>
+      </dl></dd>
+
+      <dt class="func">app.snarl.hide_message(<var>id</var>)</dt>
+      <dd><var>id</var>で識別されるSnarlのメッセージを消します。成功時は<code>true</code>を、失敗時は<code>false</code>を返します。</dd>
+    </dl>
+  </c:section>
+</c:section>
+
+
+
+
+
+
+
+
+<c:section id="history">  <!--{{{1-->
+  <c:title>変更履歴</c:title>
+
+  <dl>
+    <dt>Version 0.0.6 (2008-03-01/2008-03-06)</dt>
+    <dd>shell.tray.subscribe(), shell.tray.unsubscribe(): <var>group_name</var>の追加と、それを指定しての解除ができるようにした。</dd>
+    <dd>shell.tray.reset_subscribers(): 使い難いので削除。</dd>
+    <dd>マニュアル: <a href="/todo">TODO</a>と<a href="/devnote">開発メモ</a>を追加。ロードマップは削除。</dd>
+    <dd>range(), mapx(), sortx()を追加。</dd>
+    <li>shell.tray.sort_icons(): ソート順を変更可能にした。</li>
+
+    <dt>Version 0.0.5 (2007-09-17/2008-02-26)</dt>
+    <dd>ui.window.minimize: 引数<var>use_alt_methodp</var>を追加。</dd>
+    <dd>ui.window.get_minimized_metrics, ui.window.set_minimized_metrics: 正常に動作しない場合がある点を修正。</dd>
+    <dd>shell.tray: cerejaが他のシェルの下で起動された場合でも各機能を利用可能にした。</dd>
+    <dd>ユーザーディレクトリ: 環境変数<code>CEREJA_USERDIR</code>が設定されていれば、そちらを優先して参照するようにした。</dd>
+    <dd>ui.window.enumerate: 追加。</dd>
+    <dd>ui.window.get_exstyle: 追加。</dd>
+    <dd>ui.window.get_style: 追加。</dd>
+    <dd>ui.window.get_title_name: 追加。</dd>
+    <dd>ui.window.get_class_name: 追加。</dd>
+    <dd>ui.window.find_by_point: 追加。</dd>
+    <dd>ui.window.find_by_name: ui.window.findから改名。</dd>
+    <dd>ui.window.move: 移動量をモニター/virtual screenの幅/高さに対する割合でも指定できるようにした。</dd>
+    <dd>ui.window: 一部APIをui.monitorへ移動。</dd>
+    <dd>ui.monitor: 追加。</dd>
+    <dd>ui.window.resizablep: 追加。</dd>
+    <dd>ui.window.lower: Z-orderの調整方法をWindows標準のホットキー<kbd>Alt-Esc</kbd>と同一になるよう修正。</dd>
+    <dd>app.snarl: 追加。</dd>
+    <dd>shell.tray.reset_subscribers(): 追加。</dd>
+    <dd>サンプル設定(examples/下のファイル)を色々と改善。</dd>
+
+    <dt>Version 0.0.4 (2007-04-28)</dt>
+    <dd>モジュールシステムをLua標準のものに変更。これに伴う関連APIの削除。</dd>
+    <dd><a href="/script/additionals">追加API</a>:<ul>
+      <li><code>os.pathexistsp</code>: <code>os.path_existsp</code>から改名。</li>
+      <li><code>package.findfile</code>を追加。</li>
+    </ul></dd>
+    <dd>その他、細かな改善。</dd>
+
+    <dt>Version 0.0.3 (2007-04-11)</dt>
+    <dd><a href="/script/builtins">cereja</a>: メッセージ通知APIの改善:<ul>
+      <li>通知用API (<code>cereja.notice</code>等) の追加。</li>
+      <li>通知内容の取得をするためのAPI (<code>cereja.add_notice_handler</code>等) の追加。</li>
+      <li>これに関連する内部構造の整理。</li>
+    </ul></dd>
+    <dd><a href="/module-ui/window">ui.window</a>:<ul>
+      <li><code>ui.window.maximize_vertically</code>と<code>ui.window.maximize_horizontally</code>を元のサイズに戻せるように修正。</li>
+      <li><code>ui.window.set_property</code>、<code>ui.window.get_property</code><code>ui.window.remove_property</code>の追加。</li>
+      <li><code>ui.window.get_foreground_window</code>の追加。</li>
+      <li><code>ui.window.get_placement</code>の追加。</li>
+      <li><code>ui.window.resize</code>の追加。</li>
+      <li><code>ui.window.get_monitor_from_window</code>、<code>ui.window.get_monitor_placement</code>の追加。</li>
+    </ul></dd>
+    <dd><code>--help</code>のメッセージの桁揃えがおかしかった点を修正。</dd>
+
+    <dt>Version 0.0.2 (2007-02-11)</dt>
+    <dd><a href="/module-shell/tray">shell.tray</a>: Lua APIの追加。</dd>
+    <dd><a href="/module-ui/tray">ui.tray</a>: フォーカスの有無が分かり易いように外観を変更。</dd>
+    <dd>その他、細かな改善。</dd>
+
+    <dt>Version 0.0.1 (2007-01-01)</dt>
+    <dd>マルチバイト文字列関連の改善:<ul>
+      <li>コマンドライン引数、<code>os.getenv</code>、<code>cereja.user_directory</code>: マルチバイト文字列が含まれる場合に対応した。</li>
+      <li>その他、細かな改善。</li>
+    </ul></dd>
+    <dd>タスクマネージャからcerejaに対して「タスクの終了」を選んだ時、確認のダイアログを表示するようにした。</dd>
+    <dd>設定サンプルのtypoの修正。</dd>
+
+    <dt>Version 0.0.0 (2006-12-01)</dt>
+    <dd>ファーストリリース。</dd>
+  </dl>
+</c:section>
+
+
+
+
+
+
+
+
+<c:section id="todo">  <!--{{{1-->
+  <c:title>TODO</c:title>
+
+  <ul>
+    <li>ui.tray: visual styleへの対応。</li>
+    <li>ui.tray: アイコンサイズの指定。</li>
+    <li>Lua本体のバージョンアップ。</li>
+    <li>Metaluaへの移行。</li>
+    <li>マニュアル: 各項目の相互参照。</li>
+    <li>マニュアル: extension API</li>
+    <li>マニュアル: C API</li>
+    <li>マニュアル: ビルド方法</li>
+    <li>マニュアル: shell: 定数の説明。</li>
+    <li>マニュアル: shell.tray: 一部APIの説明。</li>
+    <li>マニュアル: ui.key: 定数の説明</li>
+    <li>マニュアル: ui.tray: CMD_*がWM_COMMANDで使える点。</li>
+    <li>cereja用のアイコン。</li>
+    <li>ui.window.minimize(): JTrim 1.53b (と多分Delphi製のアプリケーション)に対して正しく動作しない。</li>
+    <li>ui.window: 全ウィンドウに対するminimize/maximize/tile/cascade。</li>
+    <li>ui.window.find_by_rectangle()</li>
+    <li>FFI</li>
+    <li>ui.window: workareの考慮。</li>
+    <li>ui.window: cereja終了時に設定を復元(alpha等)。</li>
+    <li>ui.hotkey: 個々のホットキーの削除。</li>
+    <li>UTF-8化がまだなLua API: os.execute, os.remove, os.rename, os.tmpname, io.popen</li>
+    <li>メモリ不足時の挙動(現在は無条件に終了する)。</li>
+    <li>shell.tray: NIM_DELETE時のicon index(削除されるアイコンのデータが必要なケースが出るまで放置)。</li>
+    <li>shell.tray: CopyIconすべき。アプリケーションによっては頻繁に変更があるためキャッシュもすべき(例: タスクマネージャやZoneAlarm)。</li>
+    <li>shell.tray: NIM_SETFOCUSへの対応(でもtaskbar notification areaがない)。</li>
+    <li>shell.tray: NIM_SETVERSIONへの対応。</li>
+    <li>ui.workspace</li>
+    <li>ui.desktop</li>
+    <li>ui.menu</li>
+    <li>ui.mouse</li>
+    <li>ui.sound</li>
+    <li>MessageBoxIndirect</li>
+    <li>RegisterShellHookWindow</li>
+  </ul>
+</c:section>
+
+
+
+
+
+
+
+
+<c:section id="devnote">  <!--{{{1-->
+  <c:title>開発メモ</c:title>
+
+  <dl>
+    <dt>コーディングルール: C</dt>  <!--{{{-->
+    <dd>基本的には<a href="http://www.python.org/dev/peps/pep-0007/">PEP 7 -- Style Guide for C Code</a>に従う。</dd>  <!--}}}-->
+    <dt>命名規約: C</dt>  <!--{{{-->
+    <dd>
+      <ul>
+        <li>プレフィックスはCrj_。非公開のものには_Crj_を使う。</li>
+        <li>基本的にはCrj_FooBarとする。</li>
+        <li>マクロはCrj_FOO_BARとする。</li>
+        <li>エクステンションFooのプレフィックスはCrjFoo_を使う。</li>
+      </ul>
+    </dd>  <!--}}}-->
+    <dt>命名規約: Luaレジストリのキー</dt>  <!--{{{-->
+    <dd>
+      <ul>
+        <li>文字列を使う。</li>
+        <li>形式は"cereja:{module}:{key}"である。</li>
+        <li>{module}はモジュール名である。</li>
+        <li>{key}は任意の名前である。ただしLuaの変数名として妥当なものに限定する。</li>
+        <li>例: cereja:shell.tray:ssodl_list</li>
+      </ul>
+    </dd>  <!--}}}-->
+    <dt>エクステンション仕様</dt>  <!--{{{-->
+    <dd>
+      <p>エクステンションはLuaだけでは記述できない部分を補うためのものであり、DLLの形で提供される。</p>
+      <p>エクステンションはcereja.load_extension(extname, module)でロードする。moduleは呼び出し側のモジュールである。</p>
+      <p>エクステンションはユーザーが任意の時点でアンロードできない。cerejaの終了時に自動的にアンロードされる。</p>
+      <p>エクステンションのロード時とアンロード時には、DLL内にあるCrj_ExtMainという名前の関数が呼び出される。Crj_ExtMainはロード時に初期化、アンロード時に後始末を行う。</p>
+      <p>アンロード時の後始末の際、Luaに関して次の使用制限がある: 他のエクステンションが関係するものは一切使用してはならない。これは既に該当するエクステンションの後始末が終了し、使用不可能な状態になっている可能性があるからだ。</p>
+    </dd>  <!--}}}-->
+    <dt>エクステンションのロードにLua標準APIが使えない理由</dt>  <!--{{{-->
+    <dd>
+      <p>Lua標準APIのpackage libraryでは、モジュールの実装をLuaとC (DLL)のどちらで行ってもいいようになっている。つまり、モジュールがどちらで実装されているか区別することが出来ない。</p>
+      <p>しかしcerejaではこれを区別しなければならない。package libraryを使った場合に次の欠点があるからだ:</p>
+      <ul>
+        <li>requireを使った場合、DLL (= エクステンション)の初期化に必要なデータ(HMODULE)を得ることが出来ず、ロード時に与えることが出来ない。package.loadlibを使えば解決するものの、これはLuaのモジュールシステムをバイパスしてしまう。</li>
+        <li>アンロードのタイミングがGC任せになり、制御できない。</li>
+      </ul>
+      <p>よって、エクステンションに関してはLua標準APIではなく、独自のAPIを作成・使用しなければならない。</p>
+    </dd>  <!--}}}-->
+  </dl>
+</c:section>
+
+
+
+
+
+
+
+
+<c:section id="index">  <!--{{{1-->
+  <c:title>索引</c:title>
+
+  <c:section id="func">
+    <c:title>関数</c:title>
+    <c:index type="func"/>
+  </c:section>
+
+  <c:section id="var">
+    <c:title>変数</c:title>
+    <c:index type="var"/>
+  </c:section>
+
+  <c:section id="const">
+    <c:title>定数</c:title>
+    <c:index type="const"/>
+  </c:section>
+</c:section>
+
+
+
+
+
+
+
+
+</c:body>
+</c:doc>
+<!-- vim: foldmethod=marker
+-->

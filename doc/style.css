@@ -1,0 +1,188 @@
+@charset "UTF-8";  /* $Id$ */
+/* DEFAULT */                                                          /*{{{1*/
+
+* {
+  font-family: inherit;
+  /* font-size: ...; */
+  font-style: inherit;
+  /* font-variant: ...; */
+  font-weight: inherit;
+  line-height: 120%;
+  /* letter-spacing: ...; */
+  /* text-align: ...; */
+  text-decoration: none;
+  text-indent: 0;
+  text-transform: none;
+  /* vertical-align: ...; */
+  /* white-space: normal; */
+  /* word-spacing: ...; */
+
+  /* border: none thin red; */
+
+  color: inherit;
+}
+
+
+
+
+
+
+
+
+/* STRUCTURE */                                                        /*{{{1*/
+
+* {margin: 0;  padding: 0;}
+body {margin: 0 3%;}
+#body {margin: 4em 0;}
+
+#ad {position: absolute;  right: 0;  top: 0;}
+#header {margin-top: 60px;  padding-top: 1ex;}
+
+
+h1 {margin: 0 0 1ex;}
+h2, h3, h4 {margin: 2em 0 1ex;}
+
+
+p, pre, ul, ol, dl  {margin: 1em 0;}
+
+
+ol ol, ol ul, ul ol, ul ul {margin: 0.44em 0;}
+
+li {margin: 0.5ex 0 0 1.44em;}
+li li {margin-left: 4%;}
+
+dt, dd {margin-top: 0.5ex;}
+dd {padding-left: 4%;}
+
+
+
+
+
+
+
+
+/* DECORATION */                                                       /*{{{1*/
+
+body {
+  font-family:
+    "メイリオ",
+    "Meiryo",
+    "Segoe UI",
+    "Trebuchet MS",
+    "MS PGothic",
+    sans-serif;
+}
+pre, code, var, kbd, samp {
+  font-family:
+    "Consolas",
+    "Lucida Console",
+    "Bitstream Vera Sans Mono",
+    "MS Gothic",
+    monospace;
+}
+
+
+body {
+  font-size: 1em;
+  font-style: normal;
+  font-weight: normal;
+}
+h1, h2, h3, h4 {font-weight: bolder;}
+h1 {font-size: 300%;}
+h2 {font-size: 207%;}
+h3 {font-size: 172%;}
+h4 {font-size: 144%;}
+
+a {text-decoration: underline;}
+
+em, strong {font-weight: bolder;  font-style: normal;}
+strong {border-bottom: double 3px;}
+
+pre, code, var, kbd, samp {font-size: 1em;}
+pre, code, kbd, samp {font-style: normal;}
+var {font-style: italic;}
+
+dt {font-weight: bolder;}
+dt code {font-weight: normal;}
+dt {border-style: solid none;  border-width: thin;}
+
+
+
+
+.stub:after {content: ' (stub)';  font-size: smaller;}
+.bugs:before {content: 'BUGS: ';  font-weight: bolder;}
+
+#header p {text-align: right;}
+
+
+
+#contents ol li {list-style: none;}
+
+#contents ol {counter-reset: toc-lv1;}
+#contents ol ol {counter-reset: toc-lv2;}
+#contents ol ol ol {counter-reset: toc-lv3;}
+
+#contents ol > li:before {
+  counter-increment: toc-lv1;
+  content: counter(toc-lv1) ". ";
+}
+#contents ol ol > li:before {
+  counter-increment: toc-lv2;
+  content: counter(toc-lv1) "." counter(toc-lv2) ". ";
+}
+#contents ol ol ol > li:before {
+  counter-increment: toc-lv3;
+  content: counter(toc-lv1) "." counter(toc-lv2) "." counter(toc-lv3) ". ";
+}
+
+
+body {counter-reset: sec-lv1;}
+.section h2 {counter-reset: sec-lv2;}
+.section h3 {counter-reset: sec-lv3;}
+
+.section h2:before {
+  counter-increment: sec-lv1;
+  content: counter(sec-lv1) ". ";
+}
+.section h3:before {
+  counter-increment: sec-lv2;
+  content: counter(sec-lv1) "." counter(sec-lv2) ". ";
+}
+.section h4:before {
+  counter-increment: sec-lv3;
+  content: counter(sec-lv1) "." counter(sec-lv2) "." counter(sec-lv3) ". ";
+}
+
+
+
+
+
+
+
+
+/* COLOR */                                                            /*{{{1*/
+
+body {color: #000;  background: #eee;}
+
+a {color: #00c;}
+a:visited {color: #90c;}
+a:hover, a:active, a:focus {background: #fff;}
+
+em {color: #900;}
+strong {color: #c00;  border-bottom-color: #c00;}
+
+dt {border-color: #ccc;}
+
+.stub:after {color: #666;}
+.bugs:before {color: #900;}
+
+
+
+
+
+
+
+
+/* vim: foldmethod=marker et sw=2 sts=2
+ * __END__
+ */
