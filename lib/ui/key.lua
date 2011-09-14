@@ -362,6 +362,9 @@ vk_name_table_add("num8", VK_NUMPAD8)
 vk_name_table_add("num9", VK_NUMPAD9)
 vk_name_table_add("scrolllock", VK_SCROLL)
 
+vk_name_table_add("plus", VK_OEM_PLUS)
+vk_name_table_add("minus", VK_OEM_MINUS)
+
 -- }}}
 
 
