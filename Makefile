@@ -40,7 +40,8 @@ EXTENSIONS=\
   lib/ui/monitor.dll \
   lib/ui/tray.dll \
   lib/ui/window.dll \
-  lib/ui/sound.dll
+  lib/ui/sound.dll \
+  lib/ui/system.dll
 
 .PHONY: \
   all \
@@ -125,6 +126,7 @@ lib/shell/__init__.dll: EXTRA_LIBS = powrprof
 lib/shell/tray.dll: EXTRA_LIBS = ole32
 lib/ui/ime.dll: EXTRA_LIBS = imm32
 lib/ui/sound.dll: EXTRA_LIBS = winmm
+lib/ui/system.dll: EXTRA_LIBS = iphlpapi ws2_32
 $(EXTENSIONS): libcereja.dll liblua.dll libutf8api.dll
 
 $(cereja_SOURCES:.c=.o) \
