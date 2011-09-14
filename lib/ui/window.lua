@@ -53,7 +53,7 @@ do
     local hmonitor = ui.monitor.find_by_window(hwnd)
 
     local wx, wy, ww, wh = get_placement(hwnd)
-    local mx, my, mw, mh = unpack(ui.monitor.get_info(hmonitor).placement)
+    local mx, my, mw, mh = unpack(ui.monitor.get_info(hmonitor).workarea)
     local vx, vy, vw, vh = unpack(ui.monitor.get_vscreen_placement())
 
     local x = convert(tx, dx, wx, ww, mx, mw, vx, vw)
@@ -87,16 +87,16 @@ do
     if zoomedp then
       setprop(hwnd, 'vmaximize.zoomedp', false)
       local x, _, width, _ = get_placement(hwnd)
-      local _, y, _, height = unpack(getprop(hwnd, 'vmaximize.placement'))
+      local _, y, _, height = unpack(getprop(hwnd, 'vmaximize.workarea'))
       move('A', 'A', x, y, hwnd)
       resize(width, height, hwnd)
     else
       setprop(hwnd, 'vmaximize.zoomedp', true)
       local x, y, width, height = get_placement(hwnd)
-      setprop(hwnd, 'vmaximize.placement', {x, y, width, height})
+      setprop(hwnd, 'vmaximize.workarea', {x, y, width, height})
       local monitor_info = ui.monitor.get_info(ui.monitor.find_by_window(hwnd))
-      move('A', 'A', x, monitor_info.placement[2], hwnd)
-      resize(width, monitor_info.placement[4], hwnd)
+      move('A', 'A', x, monitor_info.workarea[2], hwnd)
+      resize(width, monitor_info.workarea[4], hwnd)
     end
   end
 
@@ -107,16 +107,16 @@ do
     if zoomedp then
       setprop(hwnd, 'hmaximize.zoomedp', false)
       local _, y, _, height = get_placement(hwnd)
-      local x, _, width, _ = unpack(getprop(hwnd, 'hmaximize.placement'))
+      local x, _, width, _ = unpack(getprop(hwnd, 'hmaximize.workarea'))
       move('A', 'A', x, y, hwnd)
       resize(width, height, hwnd)
     else
       setprop(hwnd, 'hmaximize.zoomedp', true)
       local x, y, width, height = get_placement(hwnd)
-      setprop(hwnd, 'hmaximize.placement', {x, y, width, height})
+      setprop(hwnd, 'hmaximize.workarea', {x, y, width, height})
       local monitor_info = ui.monitor.get_info(ui.monitor.find_by_window(hwnd))
-      move('A', 'A', monitor_info.placement[1], y, hwnd)
-      resize(monitor_info.placement[3], height, hwnd)
+      move('A', 'A', monitor_info.workarea[1], y, hwnd)
+      resize(monitor_info.workarea[3], height, hwnd)
     end
   end
 end
@@ -131,9 +131,9 @@ function move_to_monitor(dest_hmonitor, hwnd)
 
   local wl, wt, ww, wh = ui.window.get_placement(hwnd)
   local wr, wb = wl + ww, wt + wh
-  local sl, st, sw, sh = unpack(ui.monitor.get_info(src_hmonitor).placement)
+  local sl, st, sw, sh = unpack(ui.monitor.get_info(src_hmonitor).workarea)
   local sr, sb = sl + sw, st + sh
-  local dl, dt, dw, dh = unpack(ui.monitor.get_info(dest_hmonitor).placement)
+  local dl, dt, dw, dh = unpack(ui.monitor.get_info(dest_hmonitor).workarea)
   local dr, db = dl + dw, dt + dh
 
   wl = wl + (dl - sl)
