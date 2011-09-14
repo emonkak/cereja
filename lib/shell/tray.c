@@ -62,6 +62,10 @@
         (((nid)->uFlags & NIF_STATE)	\
          && ((nid)->dwState & (nid)->dwStateMask & NIS_HIDDEN))
 
+#define NOTIFYICONDATA_NIS_SHAREDICONP(nid)	\
+        (((nid)->uFlags & NIF_STATE)	\
+         && ((nid)->dwState & (nid)->dwStateMask & NIS_SHAREDICON))
+
 #define VALID_ICONP(icon) IsWindow((icon)->hWnd)
 
 static BOOL s_AnotherShellRunP;
@@ -324,8 +328,9 @@ TrayData_AddIcon(CrjTrayData* self, const CrjNOTIFYICONDATA* nid,
 		return FALSE;
 
 	/* [NIS_FLAGS] */
-	if (NOTIFYICONDATA_NIS_HIDDENP(nid))
+	if (NOTIFYICONDATA_NIS_HIDDENP(nid) || NOTIFYICONDATA_NIS_SHAREDICONP(nid))
 		return FALSE;
+
 	/* Some applications (e.g. Samurize) send NIM_ADD more than once,
 	 * so ignore such case.  */
 	if (0 <= TrayData_FindIconIndex(self, nid))
@@ -545,6 +550,12 @@ tray_message_proc(lua_State* L, DWORD message, const CrjNOTIFYICONDATA* nid)
 	case NIM_MODIFY:
 		processedp = TrayData_UpdateIcon(s_TrayData, nid,
 		                                 &icon_index, &flags);
+
+		if (!processedp) {
+			processedp = TrayData_AddIcon(s_TrayData, nid,
+		                                      &icon_index, &flags);
+			message = NIM_ADD;
+		}
 		break;
 	case NIM_SETFOCUS:
 		return FALSE;  /* FIXME: NIY */
