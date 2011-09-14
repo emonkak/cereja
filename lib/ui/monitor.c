@@ -137,6 +137,37 @@ ui_monitor_get_vscreen_placement(lua_State* L)
 
 
 
+static int
+ui_monitor_set_workarea(lua_State* L)
+{
+	RECT rect;
+	ZeroMemory(&rect, sizeof(rect));
+
+	Crj_ParseArgs(L, "| {llll}",
+				  &(rect.left),
+				  &(rect.top),
+				  &(rect.right),
+				  &(rect.bottom));
+
+	if (rect.left == 0 && rect.top == 0 &&
+		rect.right == 0 && rect.bottom == 0) {
+		rect.left   = GetSystemMetrics(SM_XVIRTUALSCREEN);
+		rect.top    = GetSystemMetrics(SM_YVIRTUALSCREEN);
+		rect.right  = GetSystemMetrics(SM_CXVIRTUALSCREEN) - rect.left;
+		rect.bottom = GetSystemMetrics(SM_CYVIRTUALSCREEN) - rect.top;
+	} else {
+		rect.right  = rect.right + rect.left;
+		rect.bottom = rect.bottom + rect.top;
+	}
+
+	SystemParametersInfo(SPI_SETWORKAREA, 0, &rect, 0);
+
+	return 0;
+}
+
+
+
+
 static const luaL_Reg PUBLIC_FUNCTIONS[] = {
 	{"find_all", ui_monitor_find_all},
 	{"find_by_point", ui_monitor_find_by_point},
@@ -144,6 +175,7 @@ static const luaL_Reg PUBLIC_FUNCTIONS[] = {
 	{"find_by_window", ui_monitor_find_by_window},
 	{"get_info", ui_monitor_get_info},
 	{"get_vscreen_placement", ui_monitor_get_vscreen_placement},
+	{"set_workarea", ui_monitor_set_workarea},
 	{NULL, NULL}
 };
 
