@@ -19,6 +19,7 @@
 #include <shellapi.h>  /* ShellExecute */
 #include <shlobj.h>  /* SHGetFolderPath */
 #include <tchar.h>
+#include <mmsystem.h>
 
 #include <stdio.h>
 #include <malloc.h>
@@ -75,6 +76,8 @@ Utf8_PUBLIC(int) MessageBoxU(HWND, LPCSTR, LPCSTR, UINT);
 /* RegisterClass/WNDCLASS/UnregisterClass [CONSTANT/STRUCTURE] */
 Utf8_PUBLIC(HRESULT) SHGetFolderPathU(HWND, int, HANDLE, DWORD, LPSTR);
 Utf8_PUBLIC(HINSTANCE) ShellExecuteU(HWND, LPCSTR, LPCSTR, LPCSTR, LPCSTR,INT);
+
+Utf8_PUBLIC(BOOL) PlaySoundU(LPCSTR, HMODULE, DWORD);
 
 Utf8_PUBLIC(FILE*) fopenU(const char*, const char*);
 #define fopenW _wfopen

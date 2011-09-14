@@ -208,6 +208,16 @@ ShellExecuteU(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile,
 
 
 
+Utf8_PUBLIC(BOOL)
+PlaySoundU(LPCSTR pszSound, HMODULE hmod, DWORD fdwSound)
+{
+	DEFINE_NATIVE_STRING(pszSound);
+
+	return PlaySoundT(pszSoundT, hmod, fdwSound);
+}
+
+
+
 Utf8_PUBLIC(FILE*)
 fopenU(const char* filename, const char* mode)
 {

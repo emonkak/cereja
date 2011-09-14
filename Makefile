@@ -39,7 +39,8 @@ EXTENSIONS=\
   lib/ui/key.dll \
   lib/ui/monitor.dll \
   lib/ui/tray.dll \
-  lib/ui/window.dll
+  lib/ui/window.dll \
+  lib/ui/sound.dll
 
 .PHONY: \
   all \
@@ -111,7 +112,8 @@ libutf8api.dll: $(libutf8api_SOURCES:.c=.o)
 	$(CC) $(CFLAGS) -o $@ -shared \
 	  -Wl,--out-implib=$(@:.dll=.a) \
 	  -Wl,--whole-archive $^ \
-	  -Wl,--no-whole-archive
+	  -Wl,--no-whole-archive \
+	  -lwinmm
 src/utf8api.h.gen: src/utf8api.h
 	sed -ne 's/.*Utf8_PUBLIC([^()]*) *\([A-Za-z0-9_]*\)U(.*/#undef \1\n#define \1 \1U\n#define \1T \1W/; t L; b; :L; p' <$< >$@
 
@@ -122,6 +124,7 @@ $(foreach i,$(EXTENSIONS),$(eval $(call extension_prerequisites,$(i))))
 lib/shell/__init__.dll: EXTRA_LIBS = powrprof
 lib/shell/tray.dll: EXTRA_LIBS = ole32
 lib/ui/ime.dll: EXTRA_LIBS = imm32
+lib/ui/sound.dll: EXTRA_LIBS = winmm
 $(EXTENSIONS): libcereja.dll liblua.dll libutf8api.dll
 
 $(cereja_SOURCES:.c=.o) \
