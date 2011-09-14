@@ -319,6 +319,10 @@ TrayData_AddIcon(CrjTrayData* self, const CrjNOTIFYICONDATA* nid,
 {
 	CrjTrayIcon* icon;
 
+	/* NULL hIcon (e.g. Volume Icon) */
+	if (nid->hIcon == NULL)
+		return FALSE;
+
 	/* [NIS_FLAGS] */
 	if (NOTIFYICONDATA_NIS_HIDDENP(nid))
 		return FALSE;
