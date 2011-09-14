@@ -636,6 +636,22 @@ ui_window_enumerate(lua_State* L)
 
 
 
+static int
+ui_window_refresh(lua_State* L)
+{
+	HWND hwnd = NULL;
+	UINT flags = 0;
+	Crj_ParseArgs(L, "| I u", &flags, &hwnd);
+	flags |= SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER;
+	hwnd = GetTargetWindow(hwnd);
+
+	SetWindowPos(hwnd, NULL, 0, 0, 0, 0, flags);
+	return 0;
+}
+
+
+
+
 static const luaL_Reg PUBLIC_FUNCTIONS[] = {
 	{"minimizedp", ui_window_minimizedp},
 	{"maximizedp", ui_window_maximizedp},
@@ -665,6 +681,7 @@ static const luaL_Reg PUBLIC_FUNCTIONS[] = {
 	{"get_style", ui_window_get_style},
 	{"get_exstyle", ui_window_get_exstyle},
 	{"enumerate", ui_window_enumerate},
+	{"refresh", ui_window_refresh},
 
 	{NULL, NULL}
 };
