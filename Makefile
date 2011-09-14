@@ -33,6 +33,7 @@ EXTENSIONS=\
   lib/app/snarl.dll \
   lib/shell/__init__.dll \
   lib/shell/tray.dll lib/shell/tray-hook.dll \
+  lib/shell/window.dll \
   lib/ui/hotkey.dll \
   lib/ui/key.dll \
   lib/ui/monitor.dll \
