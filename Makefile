@@ -35,6 +35,7 @@ EXTENSIONS=\
   lib/shell/tray.dll lib/shell/tray-hook.dll \
   lib/shell/window.dll \
   lib/ui/hotkey.dll \
+  lib/ui/ime.dll \
   lib/ui/key.dll \
   lib/ui/monitor.dll \
   lib/ui/tray.dll \
@@ -120,6 +121,7 @@ endef
 $(foreach i,$(EXTENSIONS),$(eval $(call extension_prerequisites,$(i))))
 lib/shell/__init__.dll: EXTRA_LIBS = powrprof
 lib/shell/tray.dll: EXTRA_LIBS = ole32
+lib/ui/ime.dll: EXTRA_LIBS = imm32
 $(EXTENSIONS): libcereja.dll liblua.dll libutf8api.dll
 
 $(cereja_SOURCES:.c=.o) \
