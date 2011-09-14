@@ -106,10 +106,13 @@ publish(lua_State* L, DWORD event, int icon_index, UINT flags)
 
 #define FORCE_DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \
         const GUID n GUID_SECT = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
-static FORCE_DEFINE_GUID(IID_IOleCommandTarget,
-                         0xb722bccb,
-                         0x4e68,0x101b,
-                         0xa2,0xbc,0x00,0xaa,0x00,0x40,0x47,0x70);
+#ifndef __MINGW32__
+static
+#endif
+FORCE_DEFINE_GUID(IID_IOleCommandTarget,
+                  0xb722bccb,
+                  0x4e68,0x101b,
+                  0xa2,0xbc,0x00,0xaa,0x00,0x40,0x47,0x70);
 
 
 static void
