@@ -581,6 +581,18 @@ ui_window_get_style(lua_State* L)
 }
 
 static int
+ui_window_set_style(lua_State* L)
+{
+	LONG style;
+	HWND hwnd = NULL;
+	Crj_ParseArgs(L, "l | u", &style,  &hwnd);
+	hwnd = GetTargetWindow(hwnd);
+
+	SetWindowLong(hwnd, GWL_STYLE, style);
+	return 0;
+}
+
+static int
 ui_window_get_exstyle(lua_State* L)
 {
 	HWND hwnd = NULL;
@@ -589,6 +601,18 @@ ui_window_get_exstyle(lua_State* L)
 
 	lua_pushnumber(L, (lua_Number)GetWindowLongPtr(hwnd, GWL_EXSTYLE));
 	return 1;
+}
+
+static int
+ui_window_set_exstyle(lua_State* L)
+{
+	LONG style;
+	HWND hwnd = NULL;
+	Crj_ParseArgs(L, "l | u", &style,  &hwnd);
+	hwnd = GetTargetWindow(hwnd);
+
+	SetWindowLong(hwnd, GWL_EXSTYLE, style);
+	return 0;
 }
 
 
@@ -679,7 +703,9 @@ static const luaL_Reg PUBLIC_FUNCTIONS[] = {
 	{"get_class_name", ui_window_get_class_name},
 	{"get_title_name", ui_window_get_title_name},
 	{"get_style", ui_window_get_style},
+	{"set_style", ui_window_set_style},
 	{"get_exstyle", ui_window_get_exstyle},
+	{"set_exstyle", ui_window_set_exstyle},
 	{"enumerate", ui_window_enumerate},
 	{"refresh", ui_window_refresh},
 
